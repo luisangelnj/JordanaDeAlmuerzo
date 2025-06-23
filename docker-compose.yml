@@ -1,0 +1,57 @@
+
+services:
+  manager:
+    build: ./services/manager-service
+    container_name: manager-service
+    ports:
+      - "3001:3001"
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672 # Usar el nombre del servicio de RabbitMQ
+    volumes:
+      - ./lib:/app/lib
+      - ./services/manager-service:/app
+    depends_on:
+      - rabbitmq  # Asegura que RabbitMQ inicie primero
+    command: npm run dev
+
+  kitchen:
+    build: ./services/kitchen-service
+    container_name: kitchen-service
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./services/kitchen-service:/app
+    command: npm run dev
+
+  warehouse:
+    build: ./services/warehouse-service
+    container_name: warehouse-service
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./services/warehouse-service:/app
+    command: npm run dev
+
+  marketplace:
+    build: ./services/marketplace-service
+    container_name: marketplace-service
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./services/marketplace-service:/app
+    command: npm run dev
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq-service
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"     # Puerto para mensajes
+      - "15672:15672"   # Puerto para Interfaz web de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+networks:
+  jornada-network:
+    driver: bridge
