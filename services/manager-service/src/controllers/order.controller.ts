@@ -19,19 +19,16 @@ export const createOrderController: RequestHandler = async (req, res) => {
     }
 
     try {
-        // 1. Inicializa la conexión a la BD
         if (!AppDataSource.isInitialized) {
             await AppDataSource.initialize();
         }
         
         const orderRepository = AppDataSource.getRepository(OrderBatch);
         
-        // 2. Crea la entidad de la orden
         const newOrder = new OrderBatch();
         newOrder.quantity = quantity;
         newOrder.status = OrderStatus.PENDING;
 
-        // 3. Guarda la orden en la base de datos
         await orderRepository.save(newOrder);
 
         const message = {
@@ -42,7 +39,6 @@ export const createOrderController: RequestHandler = async (req, res) => {
 
         await sendToQueue("order_requests_queue", message);
 
-        // 4. Tampoco uses "return" aquí.
         res.status(202).json({
             success: true,
             message: `Order batch for ${quantity} dishes received and is being processed.`,

@@ -1,4 +1,3 @@
-// manager-service/src/entities/OrderBatch.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 // Definimos los posibles estados de una orden

@@ -39,6 +39,7 @@ services:
     ports:
       - "3001:3001"
     environment:
+      - PORT= 3001
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - DB_HOST=manager-db
       - DB_PORT=5432
@@ -63,7 +64,8 @@ services:
     ports:
       - "3002:3002"
     environment:
-      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      - PORT= 3001
+      - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
     volumes:
       - ./services/kitchen-service:/app
     depends_on:
@@ -73,17 +75,42 @@ services:
     networks:
       - jornada-network
 
+  warehouse-db:
+    image: postgres:14-alpine # Usamos una imagen oficial de PostgreSQL
+    container_name: warehouse-db
+    environment:
+      POSTGRES_USER: warehouse_user
+      POSTGRES_PASSWORD: warehouse_password
+      POSTGRES_DB: warehouse_db
+    ports:
+      - "5433:5432" # Expone el puerto para que puedas conectarte desde tu máquina si lo necesitas
+    volumes:
+      - warehouse-db-data:/var/lib/postgresql/data # Persiste los datos
+    networks:
+      - jornada-network
+
   warehouse:
     build: ./services/warehouse-service
     container_name: warehouse-service
     ports:
       - "3003:3003"
+    environment:
+      - PORT= 3003
+      - DB_HOST=warehouse-db
+      - DB_PORT=5432
+      - DB_USERNAME=warehouse_user
+      - DB_PASSWORD=warehouse_password
+      - DB_DATABASE=warehouse_db
     volumes:
       - ./services/warehouse-service:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      warehouse-db:
+        condition: service_started
     command: npm run dev
-    env_file:
-      # Carga las variables de entorno desde un archivo .env
-      - ./services/kitchen-service/.env
+    networks:
+      - jornada-network
 
   marketplace:
     build: ./services/marketplace-service
@@ -96,6 +123,7 @@ services:
 
 volumes:
   manager-db-data: # Define el volumen
+  warehouse-db-data:
 
 networks:
   jornada-network:

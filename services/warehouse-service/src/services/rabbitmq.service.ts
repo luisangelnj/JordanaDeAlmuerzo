@@ -1,7 +1,4 @@
 import * as amqp from 'amqplib';
-import dotenv from 'dotenv';
-
-dotenv.config(); // Cargar variables de entorno
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
 

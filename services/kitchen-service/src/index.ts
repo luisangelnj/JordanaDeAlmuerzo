@@ -3,7 +3,7 @@ import { startKitchenWorker } from './services/kitchen.worker';
 import statusRoutes from './routes/kitchen.routes';
 
 const app = express();
-const PORT = process.env.KITCHEN_SERVICE_PORT || 3002;
+const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
 

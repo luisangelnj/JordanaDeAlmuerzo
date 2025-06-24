@@ -1,21 +1,22 @@
 import { connect } from 'amqplib';
-import { sendToQueue } from './rabbitmq.service'; // Asumimos que tienes un servicio similar al de kitchen
+import { AppDataSource } from '../data-source';
+import { Inventory } from '../entities/Inventory.entity';
+import { sendToQueue } from './rabbitmq.service';
+import { In } from 'typeorm';
 
 // Define las colas que este servicio usará
 const INCOMING_QUEUE = 'ingredient_requests_queue';
 const OUTGOING_QUEUE_MARKETPLACE = 'marketplace_purchase_queue'; // Para pedir a la plaza
 const KITCHEN_CONFIRMATION_QUEUE = 'ingredient_ready_queue'; // Para notificar a la cocina
 
-// Simulación de la base de datos de inventario.
-// Inicia con 5 unidades de cada ingrediente.
-const inventory = new Map<string, number>([
-    ["Tomato", 5], ["Lemon", 5], ["Potato", 5], ["Rice", 5],
-    ["Ketchup", 5], ["Lettuce", 5], ["Onion", 5], ["Cheese", 5],
-    ["Meat", 5], ["Chicken", 5]
-]);
-
 export const startWarehouseWorker = async () => {
     try {
+        // 1. Conectarse a la Base de Datos al iniciar
+        if (!AppDataSource.isInitialized) {
+            await AppDataSource.initialize();
+            console.log('[v] Warehouse connected to the database.');
+        }
+
         const connection = await connect(process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672');
         const channel = await connection.createChannel();
 
@@ -24,52 +25,55 @@ export const startWarehouseWorker = async () => {
 
         channel.consume(INCOMING_QUEUE, async (msg) => {
             if (msg !== null) {
+                // 2. Obtener el Repositorio para interactuar con la tabla 'inventory'
+                const inventoryRepository = AppDataSource.getRepository(Inventory);
+                
                 try {
-                    const { batchId, ingredients } = JSON.parse(msg.content.toString());
+                    const { batchId, ingredients: requiredIngredients } = JSON.parse(msg.content.toString());
                     console.log(`[x] Received ingredient request for batch ${batchId}.`);
-                    console.log('Required ingredients:', ingredients);
+
+                    // 3. Verificar disponibilidad de ingredientes consultando la BD
+                    const ingredientNames = requiredIngredients.map((i: any) => i.name);
+                    const stockItems = await inventoryRepository.findBy({ ingredientName: In(ingredientNames) });
+                    const stockMap = new Map(stockItems.map(i => [i.ingredientName, i.quantity]));
 
                     const ingredientsToPurchase = [];
-                    const ingredientsToReserve = [];
+                    let needsToBuy = false;
 
-                    // 1. Verificar disponibilidad de ingredientes 
-                    for (const item of ingredients) {
-                        const currentStock = inventory.get(item.name) || 0;
-                        if (currentStock < item.quantity) {
-                            // No hay suficiente, hay que comprar la diferencia
+                    for (const required of requiredIngredients) {
+                        const currentStock = stockMap.get(required.name) || 0;
+                        if (currentStock < required.quantity) {
+                            needsToBuy = true;
                             ingredientsToPurchase.push({
-                                name: item.name,
-                                quantity: item.quantity - currentStock,
+                                name: required.name,
+                                quantity: required.quantity - currentStock,
                             });
-                        } else {
-                            ingredientsToReserve.push(item);
                         }
                     }
 
-                    // 2. Procesar la solicitud
-                    if (ingredientsToPurchase.length > 0) {
-                        // Hay que comprar. Enviamos un mensaje a la plaza de mercado.
-                        const purchaseRequest = {
-                            batchId,
-                            ingredients: ingredientsToPurchase,
-                            // Guardamos los ingredientes que sí teníamos para más tarde.
-                            reservedIngredients: ingredientsToReserve 
-                        };
-                        
-                        await sendToQueue(OUTGOING_QUEUE_MARKETPLACE, purchaseRequest);
-                        console.log(`[!] Short on stock. Sent purchase request to ${OUTGOING_QUEUE_MARKETPLACE} for batch ${batchId}.`);
+                    // 4. Procesar la solicitud
+                    if (needsToBuy) {
+                        // Unhappy Path: No hay suficiente stock
+                        console.log(`[!] Insufficient stock for batch ${batchId}. Creating purchase order.`);
+                        await sendToQueue(OUTGOING_QUEUE_MARKETPLACE, { batchId, ingredients: ingredientsToPurchase });
                     } else {
-                        // ¡Tenemos todo! Reservamos y notificamos a la cocina.
-                        console.log(`[v] All ingredients available for batch ${batchId}.`);
+                        // Happy Path: ¡Tenemos todo!
+                        console.log(`[v] All ingredients available for batch ${batchId}. Reserving ingredients.`);
                         
-                        // Descontamos del inventario 
-                        ingredients.forEach((item: { name: string; quantity: number; }) => {
-                            const currentStock = inventory.get(item.name) || 0;
-                            inventory.set(item.name, currentStock - item.quantity);
+                        // 5. Descontar del inventario usando una TRANSACCIÓN para asegurar la integridad de los datos
+                        await AppDataSource.manager.transaction(async (transactionalEntityManager) => {
+                            for (const required of requiredIngredients) {
+                                await transactionalEntityManager.decrement(
+                                    Inventory,
+                                    { ingredientName: required.name },
+                                    "quantity",
+                                    required.quantity
+                                );
+                            }
                         });
-                        console.log('Updated inventory:', Object.fromEntries(inventory));
-                        
-                        // Notificamos a cocina que los ingredientes están listos
+                        console.log(`[db] Inventory updated for batch ${batchId}.`);
+
+                        // Notificar a cocina que los ingredientes están listos
                         await sendToQueue(KITCHEN_CONFIRMATION_QUEUE, { batchId, status: 'READY' });
                         console.log(`[>] Sent confirmation to kitchen for batch ${batchId}.`);
                     }
@@ -77,12 +81,11 @@ export const startWarehouseWorker = async () => {
                     channel.ack(msg);
                 } catch (error) {
                     console.error("Error processing ingredient request:", error);
-                    channel.nack(msg, false, false); // No reencolar para evitar bucles infinitos
+                    channel.nack(msg, false, false);
                 }
             }
         });
     } catch (error) {
         console.error('Failed to start Warehouse worker:', error);
-        // Implementar lógica de reconexión para robustez
     }
 };
