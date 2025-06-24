@@ -47,7 +47,6 @@ services:
       - DB_PASSWORD=manager_password
       - DB_DATABASE=manager_db
     volumes:
-      - ./lib:/app/lib
       - ./services/manager-service/src:/app/src
     depends_on:
       rabbitmq:
@@ -58,19 +57,40 @@ services:
     networks:
       - jornada-network
 
+  kitchen-db:
+    image: postgres:14-alpine # Usamos una imagen oficial de PostgreSQL
+    container_name: kitchen-db
+    environment:
+      POSTGRES_USER: kitchen_user
+      POSTGRES_PASSWORD: kitchen_password
+      POSTGRES_DB: kitchen_db
+    ports:
+      - "5434:5432" # Expone el puerto para que puedas conectarte desde tu máquina si lo necesitas
+    volumes:
+      - kitchen-db-data:/var/lib/postgresql/data # Persiste los datos
+    networks:
+      - jornada-network
+
   kitchen:
     build: ./services/kitchen-service
     container_name: kitchen-service
     ports:
       - "3002:3002"
     environment:
-      - PORT= 3001
+      - PORT= 3002
       - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
+      - DB_HOST=kitchen-db
+      - DB_PORT=5432
+      - DB_USERNAME=kitchen_user
+      - DB_PASSWORD=kitchen_password
+      - DB_DATABASE=kitchen_db
     volumes:
       - ./services/kitchen-service:/app
     depends_on:
       rabbitmq:
         condition: service_healthy
+      kitchen-db:
+        condition: service_started
     command: npm run dev
     networks:
       - jornada-network
@@ -122,8 +142,9 @@ services:
     command: npm run dev
 
 volumes:
-  manager-db-data: # Define el volumen
+  manager-db-data:
   warehouse-db-data:
+  kitchen-db-data:
 
 networks:
   jornada-network:
