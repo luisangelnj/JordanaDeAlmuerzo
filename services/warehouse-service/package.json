@@ -2,7 +2,7 @@
   "name": "warehouse-service",
   "version": "1.0.0",
   "description": "Servicio de Almacén",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.3",
     "nodemon": "^3.1.10",
@@ -19,8 +20,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "amqplib": "^0.10.8",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^5.1.0"
   }
 }

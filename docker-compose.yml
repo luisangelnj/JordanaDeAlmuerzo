@@ -1,45 +1,5 @@
 
 services:
-  manager:
-    build: ./services/manager-service
-    container_name: manager-service
-    ports:
-      - "3001:3001"
-    environment:
-      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672 # Usar el nombre del servicio de RabbitMQ
-    volumes:
-      - ./lib:/app/lib
-      - ./services/manager-service:/app
-    depends_on:
-      - rabbitmq  # Asegura que RabbitMQ inicie primero
-    command: npm run dev
-
-  kitchen:
-    build: ./services/kitchen-service
-    container_name: kitchen-service
-    ports:
-      - "3002:3002"
-    volumes:
-      - ./services/kitchen-service:/app
-    command: npm run dev
-
-  warehouse:
-    build: ./services/warehouse-service
-    container_name: warehouse-service
-    ports:
-      - "3003:3003"
-    volumes:
-      - ./services/warehouse-service:/app
-    command: npm run dev
-
-  marketplace:
-    build: ./services/marketplace-service
-    container_name: marketplace-service
-    ports:
-      - "3004:3004"
-    volumes:
-      - ./services/marketplace-service:/app
-    command: npm run dev
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -51,6 +11,91 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jornada-network
+
+  manager-db:
+    image: postgres:14-alpine # Usamos una imagen oficial de PostgreSQL
+    container_name: manager-db
+    environment:
+      POSTGRES_USER: manager_user
+      POSTGRES_PASSWORD: manager_password
+      POSTGRES_DB: manager_db
+    ports:
+      - "5432:5432" # Expone el puerto para que puedas conectarte desde tu máquina si lo necesitas
+    volumes:
+      - manager-db-data:/var/lib/postgresql/data # Persiste los datos
+    networks:
+      - jornada-network
+
+  manager:
+    build: ./services/manager-service
+    container_name: manager-service
+    ports:
+      - "3001:3001"
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - DB_HOST=manager-db
+      - DB_PORT=5432
+      - DB_USERNAME=manager_user
+      - DB_PASSWORD=manager_password
+      - DB_DATABASE=manager_db
+    volumes:
+      - ./lib:/app/lib
+      - ./services/manager-service/src:/app/src
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      manager-db:
+        condition: service_started
+    command: npm run dev
+    networks:
+      - jornada-network
+
+  kitchen:
+    build: ./services/kitchen-service
+    container_name: kitchen-service
+    ports:
+      - "3002:3002"
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    volumes:
+      - ./services/kitchen-service:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: npm run dev
+    networks:
+      - jornada-network
+
+  warehouse:
+    build: ./services/warehouse-service
+    container_name: warehouse-service
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./services/warehouse-service:/app
+    command: npm run dev
+    env_file:
+      # Carga las variables de entorno desde un archivo .env
+      - ./services/kitchen-service/.env
+
+  marketplace:
+    build: ./services/marketplace-service
+    container_name: marketplace-service
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./services/marketplace-service:/app
+    command: npm run dev
+
+volumes:
+  manager-db-data: # Define el volumen
 
 networks:
   jornada-network:

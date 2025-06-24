@@ -1,7 +1,8 @@
-// 1. Importa RequestHandler junto a Request y Response
 import { Request, Response, RequestHandler } from "express";
 import { sendToQueue } from "../services/rabbitmq.service";
 import { v4 as uuidv4 } from 'uuid';
+import { AppDataSource } from '../data-source';
+import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
 
 // 2. Usa el tipo RequestHandler para tipar el controlador.
 //    Esto asegura que la firma sea la correcta (req, res, next).
@@ -17,20 +18,35 @@ export const createOrderController: RequestHandler = async (req, res) => {
         return; // Usa un return vacío para detener la ejecución
     }
 
-    const orderBatch = {
-        batchId: uuidv4(),
-        quantity: quantity,
-        requestedAt: new Date().toISOString(),
-    };
-
     try {
-        await sendToQueue("order_requests_queue", orderBatch);
+        // 1. Inicializa la conexión a la BD
+        if (!AppDataSource.isInitialized) {
+            await AppDataSource.initialize();
+        }
+        
+        const orderRepository = AppDataSource.getRepository(OrderBatch);
+        
+        // 2. Crea la entidad de la orden
+        const newOrder = new OrderBatch();
+        newOrder.quantity = quantity;
+        newOrder.status = OrderStatus.PENDING;
+
+        // 3. Guarda la orden en la base de datos
+        await orderRepository.save(newOrder);
+
+        const message = {
+            batchId: newOrder.id,
+            quantity: quantity,
+            requestedAt: new Date().toISOString(),
+        };
+
+        await sendToQueue("order_requests_queue", message);
 
         // 4. Tampoco uses "return" aquí.
         res.status(202).json({
             success: true,
             message: `Order batch for ${quantity} dishes received and is being processed.`,
-            batchId: orderBatch.batchId,
+            orderId: newOrder.id,
         });
     } catch (error) {
         console.error("Error publishing order batch to queue:", error);

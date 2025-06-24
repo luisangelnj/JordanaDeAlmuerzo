@@ -1,11 +1,20 @@
-import http from "http";
+import express from 'express';
+import { startKitchenWorker } from './services/kitchen.worker';
+import statusRoutes from './routes/kitchen.routes';
 
-const PORT = 3002;
-const server = http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end("Kitchen service running!");
-});
+const app = express();
+const PORT = process.env.KITCHEN_SERVICE_PORT || 3002;
 
-server.listen(PORT, () => {
-  console.log(`Kitchen service on port ${PORT}`);
+app.use(express.json());
+
+// Define las rutas para consultar el estado
+app.use('/api/kitchen', statusRoutes);
+
+// Inicia el servidor Express para atender las peticiones del frontend
+app.listen(PORT, () => {
+    console.log(`Kitchen service API listening on port ${PORT}`);
+    
+    // De forma concurrente, inicia el worker para que escuche la cola de RabbitMQ
+    console.log('Starting kitchen worker...');
+    startKitchenWorker();
 });
