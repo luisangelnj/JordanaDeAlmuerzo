@@ -1,8 +1,8 @@
 {
   "name": "marketplace-service",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Servicio de MERCADO externo",
+  "main": "index.ts",
   "scripts": {
     "dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,15 +12,18 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.0.3",
+    "@types/node": "^24.0.4",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "amqplib": "^0.10.8",
+    "axios": "^1.10.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^5.1.0"
   }
 }

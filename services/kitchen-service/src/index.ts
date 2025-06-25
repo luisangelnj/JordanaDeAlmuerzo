@@ -10,7 +10,7 @@ app.use(express.json());
 // Define las rutas para consultar el estado
 app.use('/api/kitchen', statusRoutes);
 
-// Inicia el servidor Express para atender las peticiones del frontend
+// Inicia el servidor Express
 app.listen(PORT, () => {
     console.log(`Kitchen service API listening on port ${PORT}`);
     

@@ -85,7 +85,7 @@ services:
       - DB_PASSWORD=kitchen_password
       - DB_DATABASE=kitchen_db
     volumes:
-      - ./services/kitchen-service:/app
+      - ./services/kitchen-service/src:/app/src
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -116,13 +116,14 @@ services:
       - "3003:3003"
     environment:
       - PORT= 3003
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - DB_HOST=warehouse-db
       - DB_PORT=5432
       - DB_USERNAME=warehouse_user
       - DB_PASSWORD=warehouse_password
       - DB_DATABASE=warehouse_db
     volumes:
-      - ./services/warehouse-service:/app
+      - ./services/warehouse-service/src:/app/src
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -137,9 +138,18 @@ services:
     container_name: marketplace-service
     ports:
       - "3004:3004"
+    environment:
+      - PORT= 3004
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - ALEGRA_EXTERNAL_MARKETPLACE_API= https://recruitment.alegra.com/api/farmers-market/buy
     volumes:
-      - ./services/marketplace-service:/app
+      - ./services/marketplace-service/src:/app/src
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     command: npm run dev
+    networks:
+      - jornada-network
 
 volumes:
   manager-db-data:
