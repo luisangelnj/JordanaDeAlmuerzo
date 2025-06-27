@@ -16,21 +16,35 @@ interface IngredientToPurchase {
 }
 
 async function purchaseIngredient(ingredient: IngredientToPurchase): Promise<{ name: string; quantityBought: number } | null> {
-    try {
-        console.log(` -> Attempting to buy ${ingredient.quantity} of ${ingredient.name}...`);
-        const response = await axios.get(`${MARKET_API_URL}?ingredient=${ingredient.name}`);
-        const quantitySold = response.data.quantitySold;
-        if (quantitySold > 0) {
-            console.log(`    [v] Successfully bought ${quantitySold} of ${ingredient.name}.`);
-            return { name: ingredient.name, quantityBought: quantitySold };
-        } else {
-            console.log(`    [x] Ingredient ${ingredient.name} not available at the market.`);
-            return null;
+    let totalQuantityBought = 0;
+    const quantityNeeded = ingredient.quantity;
+
+    console.log(` -> Aggressive purchase started for ${quantityNeeded} of ${ingredient.name}.`);
+
+    // Inicia un bucle que no se detendrá hasta tener la cantidad necesaria
+    while (totalQuantityBought < quantityNeeded) {
+        try {
+            const response = await axios.get(`${MARKET_API_URL}?ingredient=${ingredient.name}`);
+            const quantitySold = response.data.quantitySold;
+
+            if (quantitySold > 0) {
+                totalQuantityBought += quantitySold;
+                console.log(`    [+] Bought ${quantitySold}, total so far: ${totalQuantityBought}/${quantityNeeded} of ${ingredient.name}`);
+            } else {
+                // Si no hay stock, espera un poco antes de volver a intentarlo para no saturar la API
+                console.log(`    [+] No stock for ${ingredient.name}, retrying...`);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Espera 0.5 segundos
+            }
+        } catch (error) {
+            console.error(`    [!] API error for ${ingredient.name}, retrying...`, error);
+            // Espera un poco más si hay un error de red/servidor
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Espera 2 segundos
         }
-    } catch (error) {
-        console.error(`    [!] Error purchasing ${ingredient.name}:`, error);
-        return null;
     }
+    
+    console.log(`    [v] Aggressive purchase complete for ${ingredient.name}. Total bought: ${totalQuantityBought}.`);
+    // Devuelve el nombre y la cantidad total que se logró comprar (que podría ser un poco más de lo necesario)
+    return { name: ingredient.name, quantityBought: totalQuantityBought };
 }
 
 export const startMarketplaceWorker = async () => {
@@ -67,9 +81,18 @@ export const startMarketplaceWorker = async () => {
                     const { batchId, ingredients } = JSON.parse(msg.content.toString());
                     console.log(`[x] Received purchase request for batch ${batchId}.`);
                     
-                    const purchasePromises = ingredients.map(purchaseIngredient);
-                    const purchaseResults = await Promise.all(purchasePromises);
-                    const successfulPurchases = purchaseResults.filter((r): r is { name: string; quantityBought: number; } => r !== null);
+                    const successfulPurchases = [];
+
+                    // --- Se reemplaza Promise.all con bucle secuencial ---
+                    // Procesamos un ingrediente a la vez para no saturar la API externa.
+                    for (const ingredient of ingredients) {
+                        const result = await purchaseIngredient(ingredient);
+                        if (result) {
+                            successfulPurchases.push(result);
+                        }
+                        //Pausa entre la compra de diferentes tipos de ingredientes.
+                        await new Promise(resolve => setTimeout(resolve, 200)); // 200ms de pausa
+                    }
 
                     if (successfulPurchases.length > 0) {
                         const confirmationMessage = { batchId, purchasedIngredients: successfulPurchases };
