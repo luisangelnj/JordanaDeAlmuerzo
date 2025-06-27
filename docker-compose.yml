@@ -35,7 +35,7 @@ services:
 
   manager:
     build: ./services/manager-service
-    container_name: manager-service
+    # container_name: manager-service
     ports:
       - "3001:3001"
     environment:
@@ -73,11 +73,11 @@ services:
 
   kitchen:
     build: ./services/kitchen-service
-    container_name: kitchen-service
-    ports:
-      - "3002:3002"
+    # container_name: kitchen-service
+    # ports:
+    #   - "3002:3002"
     environment:
-      - PORT= 3002
+      # - PORT= 3002
       - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
       - DB_HOST=kitchen-db
       - DB_PORT=5432
@@ -111,11 +111,11 @@ services:
 
   warehouse:
     build: ./services/warehouse-service
-    container_name: warehouse-service
-    ports:
-      - "3003:3003"
+    # container_name: warehouse-service
+    # ports:
+      # - "3003:3003"
     environment:
-      - PORT= 3003
+      # - PORT= 3003
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - DB_HOST=warehouse-db
       - DB_PORT=5432
@@ -135,11 +135,11 @@ services:
 
   marketplace:
     build: ./services/marketplace-service
-    container_name: marketplace-service
-    ports:
-      - "3004:3004"
+    # container_name: marketplace-service
+    # ports:
+    #   - "3004:3004"
     environment:
-      - PORT= 3004
+      # - PORT= 3004
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - ALEGRA_EXTERNAL_MARKETPLACE_API= https://recruitment.alegra.com/api/farmers-market/buy
     volumes:

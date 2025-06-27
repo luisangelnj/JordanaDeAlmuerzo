@@ -8,7 +8,7 @@ const CONFIRMATION_QUEUE = 'purchase_confirmation_queue';
 
 const WAIT_EXCHANGE = 'marketplace_wait_exchange';
 const WAIT_QUEUE = 'marketplace_wait_queue';
-const RETRY_DELAY_MS = 10000; // 10 segundos
+const RETRY_DELAY_MS = 2000; // 2 segundos
 
 interface IngredientToPurchase {
     name: string;
@@ -56,6 +56,8 @@ export const startMarketplaceWorker = async () => {
             }
         });
         await channel.bindQueue(WAIT_QUEUE, WAIT_EXCHANGE, 'wait_key');
+
+        await channel.prefetch(1);
 
         console.log(`[*] Marketplace waiting for purchase requests in ${PURCHASE_QUEUE}.`);
 

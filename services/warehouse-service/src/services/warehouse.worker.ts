@@ -20,6 +20,7 @@ export const startWarehouseWorker = async () => {
         const channel = await connection.createChannel();
 
         await channel.assertQueue(INCOMING_QUEUE, { durable: true });
+        await channel.prefetch(1);
         console.log(`[*] Warehouse waiting for ingredient requests in ${INCOMING_QUEUE}.`);
 
         channel.consume(INCOMING_QUEUE, async (msg) => {

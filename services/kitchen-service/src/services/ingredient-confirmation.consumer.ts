@@ -7,7 +7,7 @@ const INCOMING_QUEUE = 'ingredient_ready_queue';
 const FINAL_CONFIRMATION_QUEUE = 'order_completion_queue';
 
 // Tiempo simulado de cocción de órden (Para hacer debugg más fácilmente en consola)
-const COOKING_TIME_MS = 2000; // 2 segundos
+const COOKING_TIME_MS = 500; // 0.5 segundos
 
 export const startIngredientConfirmationConsumer = async () => {
     try {
@@ -18,6 +18,7 @@ export const startIngredientConfirmationConsumer = async () => {
         const channel = await connection.createChannel();
 
         await channel.assertQueue(INCOMING_QUEUE, { durable: true });
+        await channel.prefetch(1);
         console.log(`[+] Kitchen Ingredient Consumer waiting for messages in ${INCOMING_QUEUE}.`);
 
         channel.consume(INCOMING_QUEUE, async (msg) => {

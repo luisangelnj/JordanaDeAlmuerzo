@@ -18,6 +18,7 @@ export const startPurchaseConsumer = async () => {
         const channel = await connection.createChannel();
 
         await channel.assertQueue(INCOMING_QUEUE, { durable: true });
+        await channel.prefetch(1);
         console.log(`[+] Warehouse Purchase Consumer waiting for purchase confirmations in ${INCOMING_QUEUE}.`);
 
         channel.consume(INCOMING_QUEUE, async (msg) => {
