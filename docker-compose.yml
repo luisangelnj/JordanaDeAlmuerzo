@@ -33,6 +33,14 @@ services:
     networks:
       - jornada-network
 
+  # dozzle:
+  #   container_name: dozzle
+  #   image: amir20/dozzle:latest
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - "8888:8080" # Accede a Dozzle en localhost:8888
+
   manager:
     build: ./services/manager-service
     # container_name: manager-service

@@ -8,7 +8,7 @@ const CONFIRMATION_QUEUE = 'purchase_confirmation_queue';
 
 const WAIT_EXCHANGE = 'marketplace_wait_exchange';
 const WAIT_QUEUE = 'marketplace_wait_queue';
-const RETRY_DELAY_MS = 2000; // 2 segundos
+const RETRY_DELAY_MS = 1500; // 1.5 segundos
 
 interface IngredientToPurchase {
     name: string;
@@ -67,9 +67,35 @@ export const startMarketplaceWorker = async () => {
                     const { batchId, ingredients } = JSON.parse(msg.content.toString());
                     console.log(`[x] Received purchase request for batch ${batchId}.`);
                     
-                    const purchasePromises = ingredients.map(purchaseIngredient);
-                    const purchaseResults = await Promise.all(purchasePromises);
-                    const successfulPurchases = purchaseResults.filter((r): r is { name: string; quantityBought: number; } => r !== null);
+                    const concurrencyLimit = 5; // Límite de cuántas llamadas a la API hacemos en paralelo
+                    const purchaseTasks = [...ingredients]; // Copiamos las tareas a una lista que podemos modificar
+                    const purchaseResults: { name: string; quantityBought: number; }[] = [];
+
+                    // Función que define el trabajo de un "worker"
+                    const worker = async () => {
+                        // Mientras haya tareas en la lista...
+                        while (purchaseTasks.length > 0) {
+                            // ...toma la siguiente tarea de la lista.
+                            const task = purchaseTasks.shift(); 
+                            if (task) {
+                                const result = await purchaseIngredient(task);
+                                if (result) {
+                                    purchaseResults.push(result);
+                                }
+                            }
+                        }
+                    };
+
+                    // Creamos un array de "workers" según nuestro límite de concurrencia
+                    const workerPromises = [];
+                    for (let i = 0; i < concurrencyLimit; i++) {
+                        workerPromises.push(worker());
+                    }
+
+                    // Esperamos a que todos los workers terminen (lo que ocurrirá cuando la lista de tareas se vacíe)
+                    await Promise.all(workerPromises);
+
+                     const successfulPurchases = purchaseResults; // Ya no necesitamos filtrar nulos si los manejamos dentro
 
                     if (successfulPurchases.length > 0) {
                         const confirmationMessage = { batchId, purchasedIngredients: successfulPurchases };
