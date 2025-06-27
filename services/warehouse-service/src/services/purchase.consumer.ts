@@ -1,0 +1,97 @@
+import { connect } from 'amqplib';
+import { AppDataSource } from '../data-source';
+import { Inventory } from '../entities/Inventory.entity';
+import { IngredientRequest, RequestStatus } from '../entities/IngredientRequest.entity';
+import { sendToQueue } from './rabbitmq.service';
+import { In } from 'typeorm';
+
+const INCOMING_QUEUE = 'purchase_confirmation_queue';
+const KITCHEN_CONFIRMATION_QUEUE = 'ingredient_ready_queue';
+const MARKETPLACE_PURCHASE_QUEUE = 'marketplace_purchase_queue';
+
+export const startPurchaseConsumer = async () => {
+    try {
+        if (!AppDataSource.isInitialized) {
+            await AppDataSource.initialize();
+        }
+        const connection = await connect(process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672');
+        const channel = await connection.createChannel();
+
+        await channel.assertQueue(INCOMING_QUEUE, { durable: true });
+        console.log(`[+] Warehouse Purchase Consumer waiting for purchase confirmations in ${INCOMING_QUEUE}.`);
+
+        channel.consume(INCOMING_QUEUE, async (msg) => {
+            if (msg !== null) {
+                const inventoryRepo = AppDataSource.getRepository(Inventory);
+                const requestRepo = AppDataSource.getRepository(IngredientRequest);
+
+                try {
+                    const { batchId, purchasedIngredients } = JSON.parse(msg.content.toString());
+                    console.log(`[+] Received purchase confirmation for batch ${batchId}.`);
+
+                    // 1. Actualizar el inventario con los ingredientes recién comprados
+                    if (purchasedIngredients.length > 0) {
+                        await AppDataSource.manager.transaction(async (manager) => {
+                            for (const item of purchasedIngredients) {
+                                await manager.increment(Inventory, { ingredientName: item.name }, "quantity", item.quantityBought);
+                            }
+                        });
+                        console.log(`[db] Inventory updated for batch ${batchId}.`);
+                    }
+
+                    // 2. Recuperar la solicitud original de la cocina
+                    const originalRequest = await requestRepo.findOneBy({ batchId });
+                    if (!originalRequest) {
+                        throw new Error(`Could not find original ingredient request for batchId: ${batchId}`);
+                    }
+
+                    // 3. Re-evaluar si ya tenemos suficiente stock para el pedido COMPLETO
+                    const requiredIngredientNames = originalRequest.requestedIngredients.map((i: any) => i.name);
+                    const currentStockItems = await inventoryRepo.findBy({ ingredientName: In(requiredIngredientNames) });
+                    const currentStockMap = new Map(currentStockItems.map(i => [i.ingredientName, i.quantity]));
+                    
+                    const stillMissingIngredients = [];
+                    let isOrderComplete = true;
+
+                    for (const required of originalRequest.requestedIngredients as any[]) {
+                        const stock = currentStockMap.get(required.name) || 0;
+                        if (stock < required.quantity) {
+                            isOrderComplete = false;
+                            stillMissingIngredients.push({ name: required.name, quantity: required.quantity - stock });
+                        }
+                    }
+
+                    // 4. Decidir el siguiente paso
+                    if (isOrderComplete) {
+                        // Aquí el pedido debe estár completo.
+                        console.log(`[v] Purchase complete! All ingredients for batch ${batchId} are now available.`);
+
+                        // Descontar el stock total y notificar a la cocina (en una transacción)
+                        await AppDataSource.manager.transaction(async (manager) => {
+                            for (const required of originalRequest.requestedIngredients as any[]) {
+                                await manager.decrement(Inventory, { ingredientName: required.name }, "quantity", required.quantity);
+                            }
+                            // Marcar la solicitud como completada
+                            await manager.update(IngredientRequest, { batchId }, { status: RequestStatus.COMPLETED });
+                        });
+
+                        await sendToQueue(KITCHEN_CONFIRMATION_QUEUE, { batchId, status: 'READY' });
+                        console.log(`[>] FINAL confirmation sent to kitchen for batch ${batchId}.`);
+
+                    } else {
+                        // AÚN FALTAN COSAS. Volver a enviar un pedido de compra solo con lo que falta.
+                        console.log(`[!] Order for batch ${batchId} still incomplete. Re-issuing purchase order for remaining items.`);
+                        await sendToQueue(MARKETPLACE_PURCHASE_QUEUE, { batchId, ingredients: stillMissingIngredients });
+                    }
+
+                    channel.ack(msg);
+                } catch (error) {
+                    console.error("Error processing purchase confirmation:", error);
+                    channel.nack(msg, false, false);
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Failed to start Purchase Consumer:', error);
+    }
+};

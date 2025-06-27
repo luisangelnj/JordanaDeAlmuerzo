@@ -1,6 +1,9 @@
 import express from 'express';
-import { startKitchenWorker } from './services/kitchen.worker';
 import statusRoutes from './routes/kitchen.routes';
+
+import { startKitchenWorker } from './services/kitchen.worker';
+import { startIngredientConfirmationConsumer } from './services/ingredient-confirmation.consumer';
+
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -11,10 +14,19 @@ app.use(express.json());
 app.use('/api/kitchen', statusRoutes);
 
 // Inicia el servidor Express
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Kitchen service API listening on port ${PORT}`);
     
-    // De forma concurrente, inicia el worker para que escuche la cola de RabbitMQ
-    console.log('Starting kitchen worker...');
-    startKitchenWorker();
+    console.log('Starting Kitchen workers...');
+    try {
+        // Iniciar ambos workers en paralelo
+        await Promise.all([
+            startKitchenWorker(),
+            startIngredientConfirmationConsumer()
+        ]);
+        console.log('All kitchen workers started successfully.');
+    } catch (error) {
+        console.error('Failed to start one or more kitchen workers:', error);
+        process.exit(1);
+    }
 });

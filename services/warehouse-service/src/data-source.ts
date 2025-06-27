@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Inventory } from './entities/Inventory.entity';
+import { IngredientRequest } from './entities/IngredientRequest.entity';
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
@@ -12,8 +13,8 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    synchronize: false, // ¡MUY IMPORTANTE! Nunca usar 'true' en producción. Usaremos migraciones.
-    logging: true, // Muestra las consultas SQL en la consola (útil para depurar)
-    entities: [Inventory], // Le dice a TypeORM qué entidades (tablas) manejar
+    synchronize: false, // Nunca usar 'true' en producción. Usaremos migraciones.
+    logging: true, // Muestra las consultas SQL en la consola (Para depuración)
+    entities: [Inventory, IngredientRequest], // Estas son entidades que TypeORM manejará
     migrations: ['src/migrations/*.ts'], // Dónde encontrar los archivos de migración
 });

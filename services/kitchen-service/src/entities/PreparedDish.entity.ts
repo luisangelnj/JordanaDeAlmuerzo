@@ -3,8 +3,16 @@ import {
     PrimaryGeneratedColumn, 
     Column, 
     CreateDateColumn,
-    Index
+    Index,
+    UpdateDateColumn 
 } from 'typeorm';
+
+// Posibles estados de un plato
+export enum DishStatus {
+    PENDING_INGREDIENTS = 'PENDING_INGREDIENTS',
+    PREPARING = 'PREPARING',
+    COMPLETED = 'COMPLETED',
+}
 
 @Entity({ name: 'prepared_dishes' }) // Define el nombre de la tabla en la base de datos
 export class PreparedDish {
@@ -19,6 +27,16 @@ export class PreparedDish {
     @Column({ type: 'uuid' }) // El ID del lote al que pertenece este plato. Es el vínculo con la orden del manager.
     batchId!: string;
 
+    @Column({
+        type: 'enum',
+        enum: DishStatus,
+        default: DishStatus.PENDING_INGREDIENTS, // El estado inicial por defecto
+    })
+    status!: DishStatus;
+
     @CreateDateColumn() // La fecha en que se registró la preparación de este plato
     createdAt!: Date;
+
+    @UpdateDateColumn() // Útil para saber cuándo se actualizó por última vez
+    updatedAt!: Date;
 }

@@ -1,36 +1,29 @@
 import { connect } from 'amqplib';
 import axios from 'axios';
-import { sendToQueue } from './rabbitmq.service'; // Asume que tienes este servicio
 
-const MARKET_API_URL = process.env.ALEGRA_EXTERNAL_MARKETPLACE_API || ''; // Reemplaza con la URL real del reto
-const INCOMING_QUEUE = 'marketplace_purchase_queue';
-const OUTGOING_QUEUE = 'purchase_confirmation_queue';
+const MARKET_API_URL = process.env.ALEGRA_EXTERNAL_MARKETPLACE_API || '';
+const MAIN_EXCHANGE = 'marketplace_exchange';
+const PURCHASE_QUEUE = 'marketplace_purchase_queue';
+const CONFIRMATION_QUEUE = 'purchase_confirmation_queue';
 
-// Interfaz para el tipo de ingrediente que se espera recibir
+const WAIT_EXCHANGE = 'marketplace_wait_exchange';
+const WAIT_QUEUE = 'marketplace_wait_queue';
+const RETRY_DELAY_MS = 10000; // 10 segundos
+
 interface IngredientToPurchase {
     name: string;
-    quantity: number; // La cantidad que el almacén necesita
+    quantity: number;
 }
 
-/**
- * Función auxiliar para comprar un solo ingrediente.
- */
 async function purchaseIngredient(ingredient: IngredientToPurchase): Promise<{ name: string; quantityBought: number } | null> {
     try {
         console.log(` -> Attempting to buy ${ingredient.quantity} of ${ingredient.name}...`);
-        
-        // Se hace la llamada a la API externa por cada ingrediente
         const response = await axios.get(`${MARKET_API_URL}?ingredient=${ingredient.name}`);
-        
         const quantitySold = response.data.quantitySold;
-
-        // Se considera una compra exitosa si la cantidad es mayor a cero 
         if (quantitySold > 0) {
-            // Podríamos comprar más de lo que necesitamos, pero solo reportamos lo que compramos.
             console.log(`    [v] Successfully bought ${quantitySold} of ${ingredient.name}.`);
             return { name: ingredient.name, quantityBought: quantitySold };
         } else {
-            // El ingrediente no estaba disponible en la plaza 
             console.log(`    [x] Ingredient ${ingredient.name} not available at the market.`);
             return null;
         }
@@ -45,39 +38,50 @@ export const startMarketplaceWorker = async () => {
         const connection = await connect(process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672');
         const channel = await connection.createChannel();
 
-        await channel.assertQueue(INCOMING_QUEUE, { durable: true });
-        console.log(`[*] Marketplace waiting for purchase requests in ${INCOMING_QUEUE}.`);
+        // 1. Asegurar que los exchanges existan
+        await channel.assertExchange(MAIN_EXCHANGE, 'direct', { durable: true });
+        await channel.assertExchange(WAIT_EXCHANGE, 'direct', { durable: true });
 
-        channel.consume(INCOMING_QUEUE, async (msg) => {
+        // 2. Configurar la cola principal de compras
+        await channel.assertQueue(PURCHASE_QUEUE, { durable: true });
+        await channel.bindQueue(PURCHASE_QUEUE, MAIN_EXCHANGE, 'purchase_key');
+
+        // 3. Configurar la cola de espera con TTL y Dead-Lettering
+        await channel.assertQueue(WAIT_QUEUE, {
+            durable: true,
+            arguments: {
+                'x-message-ttl': RETRY_DELAY_MS, // Tiempo de vida del mensaje
+                'x-dead-letter-exchange': MAIN_EXCHANGE, // A dónde va cuando muere
+                'x-dead-letter-routing-key': 'purchase_key' // Qué routing key usa
+            }
+        });
+        await channel.bindQueue(WAIT_QUEUE, WAIT_EXCHANGE, 'wait_key');
+
+        console.log(`[*] Marketplace waiting for purchase requests in ${PURCHASE_QUEUE}.`);
+
+        channel.consume(PURCHASE_QUEUE, async (msg) => {
             if (msg !== null) {
                 try {
                     const { batchId, ingredients } = JSON.parse(msg.content.toString());
                     console.log(`[x] Received purchase request for batch ${batchId}.`);
-
-                    // Hacemos todas las llamadas a la API en paralelo para mayor eficiencia
+                    
                     const purchasePromises = ingredients.map(purchaseIngredient);
                     const purchaseResults = await Promise.all(purchasePromises);
-
-                    // Filtramos solo las compras que fueron exitosas (no nulas)
-                    const successfulPurchases = purchaseResults.filter(r => r !== null);
+                    const successfulPurchases = purchaseResults.filter((r): r is { name: string; quantityBought: number; } => r !== null);
 
                     if (successfulPurchases.length > 0) {
-                        // Construimos el mensaje de confirmación para el almacén
-                        const confirmationMessage = {
-                            batchId,
-                            purchasedIngredients: successfulPurchases
-                        };
-                        
-                        // Enviamos la confirmación a la cola del almacén
-                        await sendToQueue(OUTGOING_QUEUE, confirmationMessage);
-                        console.log(`[>] Sent purchase confirmation for batch ${batchId} to ${OUTGOING_QUEUE}.`);
+                        const confirmationMessage = { batchId, purchasedIngredients: successfulPurchases };
+                        // Publicamos la confirmación directamente a la cola de confirmación
+                        channel.sendToQueue(CONFIRMATION_QUEUE, Buffer.from(JSON.stringify(confirmationMessage)));
+                        console.log(`[>] Sent purchase confirmation for batch ${batchId} to ${CONFIRMATION_QUEUE}.`);
                     } else {
-                        console.log(`[!] No ingredients could be purchased for batch ${batchId}.`);
-                        // Aquí se podría implementar la lógica de reintento como lo pide el requisito.
-                        // Por ahora, simplemente no enviamos confirmación si no se compró nada.
+                        
+                        console.log(`[!] No ingredients purchased for ${batchId}. Sending to wait queue for retry in ${RETRY_DELAY_MS/1000} seconds...`);
+                        // En lugar de fallar, envía el mensaje a la cola de espera. (Reintentamos hacer la compra)
+                        channel.publish(WAIT_EXCHANGE, 'wait_key', msg.content);
                     }
 
-                    channel.ack(msg);
+                    channel.ack(msg); // Confirma el mensaje original, ya que fue manejado (enviado a confirmación o a espera)
                 } catch (error) {
                     console.error("Error processing purchase request:", error);
                     channel.nack(msg, false, false);
