@@ -32,8 +32,11 @@ export const startPurchaseConsumer = async () => {
 
                     // 1. Actualizar el inventario con los ingredientes recién comprados
                     if (purchasedIngredients.length > 0) {
-                        await AppDataSource.manager.transaction(async (manager) => {
-                            for (const item of purchasedIngredients) {
+                        // Ordenar los ingredientes alfabéticamente por nombre antes de la transacción.
+                        const sortedIngredients = purchasedIngredients.sort((a: { name: string; }, b: { name: any; }) => a.name.localeCompare(b.name));
+                            await AppDataSource.manager.transaction(async (manager) => {
+                            // Iterar sobre la lista YA ORDENADA.
+                            for (const item of sortedIngredients) {
                                 await manager.increment(Inventory, { ingredientName: item.name }, "quantity", item.quantityBought);
                             }
                         });
@@ -67,9 +70,13 @@ export const startPurchaseConsumer = async () => {
                         // Aquí el pedido debe estár completo.
                         console.log(`[v] Purchase complete! All ingredients for batch ${batchId} are now available.`);
 
-                        // Descontar el stock total y notificar a la cocina (en una transacción)
+                        // 1. Ordenar la lista de ingredientes requeridos alfabéticamente
+                        const sortedRequiredIngredients = (originalRequest.requestedIngredients as any[]).sort((a, b) => a.name.localeCompare(b.name));
+
+                        // 2. Descontar el stock total y notificar a la cocina (en una transacción)
                         await AppDataSource.manager.transaction(async (manager) => {
-                            for (const required of originalRequest.requestedIngredients as any[]) {
+                            // Iterar sobre la lista YA ORDENADA.
+                            for (const required of sortedRequiredIngredients) {
                                 await manager.decrement(Inventory, { ingredientName: required.name }, "quantity", required.quantity);
                             }
                             // Marcar la solicitud como completada

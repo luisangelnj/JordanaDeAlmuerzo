@@ -1,5 +1,17 @@
 
 services:
+  # frontend:
+  #   build:
+  #     context: ./services/frontend-service
+  #     dockerfile: Dockerfile.dev
+  #   container_name: frontend-service
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./services/frontend-service:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - jornada-network
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -33,8 +45,18 @@ services:
     networks:
       - jornada-network
 
+  # dozzle:
+  #   container_name: dozzle
+  #   image: amir20/dozzle:latest
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - "8888:8080" # Accede a Dozzle en localhost:8888
+
   manager:
-    build: ./services/manager-service
+    build:
+      context: ./services/manager-service
+      dockerfile: Dockerfile.dev
     # container_name: manager-service
     ports:
       - "3001:3001"
@@ -72,7 +94,9 @@ services:
       - jornada-network
 
   kitchen:
-    build: ./services/kitchen-service
+    build:
+      context: ./services/kitchen-service
+      dockerfile: Dockerfile.dev
     # container_name: kitchen-service
     # ports:
     #   - "3002:3002"
@@ -110,7 +134,9 @@ services:
       - jornada-network
 
   warehouse:
-    build: ./services/warehouse-service
+    build:
+      context: ./services/warehouse-service
+      dockerfile: Dockerfile.dev
     # container_name: warehouse-service
     # ports:
       # - "3003:3003"
@@ -134,7 +160,9 @@ services:
       - jornada-network
 
   marketplace:
-    build: ./services/marketplace-service
+    build:
+      context: ./services/marketplace-service
+      dockerfile: Dockerfile.dev
     # container_name: marketplace-service
     # ports:
     #   - "3004:3004"

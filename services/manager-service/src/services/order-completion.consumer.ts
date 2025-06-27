@@ -33,7 +33,7 @@ export const startOrderCompletionConsumer = async () => {
                             order.status = OrderStatus.COMPLETED;
                             // Columna 'notes' o 'details' de tipo JSON para guardar esto
                             // Por ahora, lo mostraremos en un log.
-                            console.log(`[db] Dishes for batch ${batchId}:`, preparedDishes);
+                            // console.log(`[db] Dishes for batch ${batchId}:`, preparedDishes);
 
                             await orderRepo.save(order);
                             console.log(`[db] Order batch ${batchId} status updated to COMPLETED.`);

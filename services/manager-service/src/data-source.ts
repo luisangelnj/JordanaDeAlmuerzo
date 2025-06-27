@@ -13,7 +13,7 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     synchronize: false, // ¡MUY IMPORTANTE! Nunca usar 'true' en producción. Usaremos migraciones.
-    logging: true, // Muestra las consultas SQL en la consola (útil para depurar)
+    logging: false, // Muestra las consultas SQL en la consola (útil para depurar)
     entities: [OrderBatch], // Le dice a TypeORM qué entidades (tablas) manejar
     migrations: ['src/migrations/*.ts'], // Dónde encontrar los archivos de migración
 });

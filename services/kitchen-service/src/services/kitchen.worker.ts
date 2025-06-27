@@ -40,7 +40,7 @@ export const startKitchenWorker = async () => {
                     // 2. GUARDAR LOS PLATOS SELECCIONADOS EN LA BASE DE DATOS
                     const preparedDishRepository = AppDataSource.getRepository(PreparedDish);
                     const dishesToSave = preparedDishes.map(dish => {
-                        console.log(`Selected ${dish.name} for batch ${batchId}`);
+                        // console.log(`Selected ${dish.name} for batch ${batchId}`);
                         const newDish = new PreparedDish();
                         newDish.batchId = batchId;
                         newDish.dishName = dish.name;
