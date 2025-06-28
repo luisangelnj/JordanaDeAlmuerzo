@@ -82,7 +82,7 @@ export const recipes: Recipe[] = [
         ingredients: [
             {
                 name: 'potato',
-                quantity: 3
+                quantity: 2
             },
             {
                 name: 'cheese',
