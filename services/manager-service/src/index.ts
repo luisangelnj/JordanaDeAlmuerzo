@@ -12,8 +12,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const corsOptions = {
+  origin: 'http://localhost:5173', // <-- La URL de tu frontend
+  optionsSuccessStatus: 200 
+};
+
 // --- Middlewares ---
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json()); // Para parsear JSON
 app.use(express.urlencoded({ extended: true }));
 

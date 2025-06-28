@@ -42,7 +42,10 @@ export const createOrderController: RequestHandler = async (req, res) => {
         res.status(202).json({
             success: true,
             message: `Order batch for ${quantity} dishes received and is being processed.`,
-            orderId: newOrder.id,
+            data: {
+                orderId: newOrder.id,
+                quantity: newOrder.quantity
+            }
         });
     } catch (error) {
         console.error("Error publishing order batch to queue:", error);
