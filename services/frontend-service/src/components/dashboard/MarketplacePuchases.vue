@@ -4,7 +4,7 @@
   >
     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Órdenes recientes</h3>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Últimas compras</h3>
       </div>
 
       <div class="flex items-center gap-3">
@@ -21,19 +21,16 @@
         <thead>
           <tr class="border-t border-gray-100 dark:border-gray-800">
             <th class="py-3 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Id órden</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Ingrediente</p>
             </th>
             <th class="py-3 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400"># de platos</p>
-            </th>
-            <th class="py-3 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Cantidad</p>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="(product, index) in orders"
+            v-for="(product, index) in purchases"
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
@@ -68,38 +65,22 @@
 <script setup>
 import { ref } from 'vue'
 
-const orders = ref([
+const purchases = ref([
   {
-    name: 'f672c64b-8f1a',
+    name: 'Tomato',
     quantity: 2,
-    image: '/images/product/product-01.jpg',
-    category: 'Laptop',
-    price: '$2399.00',
-    status: 'Delivered',
   },
   {
-    name: '2fb99311-adf8',
+    name: 'Potato',
     quantity: 1,
-    image: '/images/product/product-02.jpg',
-    category: 'Watch',
-    price: '$879.00',
-    status: 'Pending',
   },
   {
-    name: 'f672c64b-8f1a',
+    name: 'Rice',
     quantity: 2,
-    image: '/images/product/product-03.jpg',
-    category: 'SmartPhone',
-    price: '$1869.00',
-    status: 'Delivered',
   },
     {
-    name: 'f672c64b-8f1a',
+    name: 'Meat',
     quantity: 2,
-    image: '/images/product/product-03.jpg',
-    category: 'SmartPhone',
-    price: '$1869.00',
-    status: 'Delivered',
   },
 ])
 </script>

@@ -1,11 +1,11 @@
 import { default } from '../../ui/views/HomeView.vue';
 <template>
     <div
-        class="flex flex-col justify-center space-y-10 rounded-2xl border h-full border-gray-200 bg-white text-white px-5 py-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
+        class="flex flex-col justify-center space-y-8 rounded-2xl border h-full border-gray-200 bg-white text-white px-5 py-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
     >
         <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h3 class="text-xl uppercase font-semibold text-gray-800 dark:text-white/90">Nueva órden</h3>
+                <h3 class="text-lg uppercase font-semibold text-gray-800 dark:text-white/90">Nueva órden</h3>
             </div>
         </div>
         
@@ -27,17 +27,17 @@ import { default } from '../../ui/views/HomeView.vue';
         
         <hr class="border-t-2 border-gray-700">
 
-        <div class="max-w-full flex">
-            <div class="w-4/12">
-                <p>Órdenes en proceso</p>
+        <div class="max-w-full flex text-center divide-x divide-gray-700 space-x-3">
+            <div class="w-4/12 flex flex-col items-center justify-center">
+                <p>Órdenes en proceso ⏳</p>
                 <p class="font-bold text-2xl">3</p>
             </div>
-            <div class="w-4/12">
-                <p>Órdenes completadas</p>
+            <div class="w-4/12 flex flex-col items-center justify-center">
+                <p>Órdenes completadas ✅</p>
                 <p class="font-bold text-2xl">12</p>
             </div>
-            <div class="w-4/12">
-                <p>Platillos completados</p>
+            <div class="w-4/12 flex flex-col items-center justify-center">
+                <p>Platillos completados ✅</p>
                 <p class="font-bold text-2xl">450</p>
             </div>
         </div>
