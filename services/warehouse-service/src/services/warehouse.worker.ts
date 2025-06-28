@@ -7,6 +7,9 @@ import { In } from 'typeorm';
 
 // Define las colas que este servicio usará
 const INCOMING_QUEUE = 'ingredient_requests_queue';
+const INGREDIENT_READY_QUEUE = 'ingredient_ready_queue';
+const MARKETPLACE_PURCHASE_QUEUE = 'marketplace_purchase_queue';
+const INVENTORY_UPDATES_QUEUE = 'inventory_updates_queue';
 
 export const startWarehouseWorker = async () => {
     try {
@@ -21,6 +24,10 @@ export const startWarehouseWorker = async () => {
 
         await channel.assertQueue(INCOMING_QUEUE, { durable: true });
         await channel.prefetch(1);
+
+        console.log('[event] Publishing initial inventory state...');
+        await publishInventoryUpdate();
+
         console.log(`[*] Warehouse waiting for ingredient requests in ${INCOMING_QUEUE}.`);
 
         channel.consume(INCOMING_QUEUE, async (msg) => {
@@ -61,7 +68,7 @@ export const startWarehouseWorker = async () => {
                         console.log(`[db] Saved ingredient request for batch ${batchId} with status PENDING_PURCHASE.`);
 
                         // 2. Publicar el mensaje a mercado
-                        await sendToQueue('marketplace_purchase_queue', { batchId, ingredients: ingredientsToPurchase });
+                        await sendToQueue(MARKETPLACE_PURCHASE_QUEUE, { batchId, ingredients: ingredientsToPurchase });
 
                     } else {
                         
@@ -72,8 +79,10 @@ export const startWarehouseWorker = async () => {
                             }
                         });
                         console.log(`[db] Inventory updated for batch ${batchId}.`);
-                        await sendToQueue('ingredient_ready_queue', { batchId, status: 'READY' });
+                        await sendToQueue(INGREDIENT_READY_QUEUE, { batchId, status: 'READY' });
                         console.log(`[>] Sent confirmation to kitchen for batch ${batchId}.`);
+                        await publishInventoryUpdate();
+                        
                     }
 
                     channel.ack(msg);
@@ -88,3 +97,13 @@ export const startWarehouseWorker = async () => {
         console.error('Failed to start Warehouse worker:', error);
     }
 };
+
+export async function publishInventoryUpdate() {
+    const inventoryRepo = AppDataSource.getRepository(Inventory);
+    // Obtenemos el estado completo del inventario
+    const currentInventory = await inventoryRepo.find(); 
+    
+    // Publicamos el estado completo en la nueva cola
+    await sendToQueue(INVENTORY_UPDATES_QUEUE, currentInventory);
+    console.log('[event] Published inventory update.');
+}

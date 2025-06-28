@@ -15,6 +15,7 @@ export const startOrderCompletionConsumer = async () => {
         const channel = await connection.createChannel();
 
         await channel.assertQueue(INCOMING_QUEUE, { durable: true });
+        await channel.prefetch(1);
         console.log(`[+] Manager Service waiting for completed orders in ${INCOMING_QUEUE}.`);
 
         channel.consume(INCOMING_QUEUE, async (msg) => {

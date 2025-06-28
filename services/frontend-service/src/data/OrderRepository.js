@@ -4,7 +4,7 @@ export default {
 
     async createOrder(orderModel) {
         try {
-            const response = await axios.post(`/order`, orderModel);
+            const response = await axios.post(`/orders`, orderModel);
 
             // Verifica si la respuesta es exitosa
             if (response.status === 202) {

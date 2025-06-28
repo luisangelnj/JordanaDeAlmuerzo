@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
+    "start": "npm run migration:run && npm run dev",
     "dev": "nodemon",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource src/data-source.ts",
     "migration:generate": "npm run typeorm -- migration:generate",

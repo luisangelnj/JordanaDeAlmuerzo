@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import orderRoutes from './routes/order.routes';
 
 import { startOrderCompletionConsumer } from './services/order-completion.consumer';
+import { startInventoryConsumer } from './services/inventory.consumer'
 
 // Cargar variables de entorno
 dotenv.config();
@@ -35,10 +36,11 @@ app.listen(PORT, async () => {
   console.log(`Manager service running on port ${PORT}`);
 
   //Iniciamos el worker para que escuche la cola de RabbitMQ
-  console.log('Starting Order Completion consumer...');
+  console.log('Starting Manager workers...');
   try {
       await startOrderCompletionConsumer();
-      console.log('Order Completion consumer started successfully.');
+      await startInventoryConsumer()
+      console.log('[+] All manager workers started successfully.');
   } catch (error) {
       console.error('Failed to start the Order Completion consumer:', error);
       process.exit(1);

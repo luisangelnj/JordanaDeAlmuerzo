@@ -1,5 +1,5 @@
 import express from 'express';
-import { startWarehouseWorker } from './services/warehouse.worker';
+import { startWarehouseWorker, publishInventoryUpdate } from './services/warehouse.worker';
 import { startPurchaseConsumer } from './services/purchase.consumer';
 
 const app = express();

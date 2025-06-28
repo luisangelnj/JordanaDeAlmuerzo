@@ -4,6 +4,7 @@ import { Inventory } from '../entities/Inventory.entity';
 import { IngredientRequest, RequestStatus } from '../entities/IngredientRequest.entity';
 import { sendToQueue } from './rabbitmq.service';
 import { In } from 'typeorm';
+import { publishInventoryUpdate } from './warehouse.worker';
 
 const INCOMING_QUEUE = 'purchase_confirmation_queue';
 const KITCHEN_CONFIRMATION_QUEUE = 'ingredient_ready_queue';
@@ -41,6 +42,7 @@ export const startPurchaseConsumer = async () => {
                             }
                         });
                         console.log(`[db] Inventory updated for batch ${batchId}.`);
+                        await publishInventoryUpdate();
                     }
 
                     // 2. Recuperar la solicitud original de la cocina
@@ -85,6 +87,7 @@ export const startPurchaseConsumer = async () => {
 
                         await sendToQueue(KITCHEN_CONFIRMATION_QUEUE, { batchId, status: 'READY' });
                         console.log(`[>] FINAL confirmation sent to kitchen for batch ${batchId}.`);
+                        await publishInventoryUpdate();
 
                     } else {
                         // AÚN FALTAN COSAS. Volver a enviar un pedido de compra solo con lo que falta.

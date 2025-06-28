@@ -1,12 +1,10 @@
 import { Request, Response, RequestHandler } from "express";
 import { sendToQueue } from "../services/rabbitmq.service";
-import { v4 as uuidv4 } from 'uuid';
 import { AppDataSource } from '../data-source';
 import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
 
-// 2. Usa el tipo RequestHandler para tipar el controlador.
-//    Esto asegura que la firma sea la correcta (req, res, next).
-export const createOrderController: RequestHandler = async (req, res) => {
+
+const createOrder: RequestHandler = async (req, res) => {
     const { quantity } = req.body;
 
     if (!quantity || typeof quantity !== 'number' || quantity <= 0) {
@@ -57,3 +55,38 @@ export const createOrderController: RequestHandler = async (req, res) => {
         });
     }
 };
+
+const getAllOrders: RequestHandler = async (req, res) => {
+    try {
+        // Leemos el límite del query string, con un default de 5 y un máximo de 20.
+        const limit = Math.min(parseInt(req.query.limit as string) || 5, 20);
+
+        if (!AppDataSource.isInitialized) {
+            await AppDataSource.initialize();
+        }
+
+        const orderRepository = AppDataSource.getRepository(OrderBatch);
+
+        // Buscamos en la base de datos
+        const orders = await orderRepository.find({
+            order: {
+                createdAt: 'DESC', // Ordenar por fecha de creación, las más nuevas primero
+            },
+            take: limit, // Tomar solo la cantidad especificada por el límite
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Success retrieving the data`,
+            data: orders
+        });
+
+    } catch (error) {
+        
+    }
+}
+
+export default {
+    createOrder,
+    getAllOrders
+}

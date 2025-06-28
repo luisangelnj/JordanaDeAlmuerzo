@@ -75,7 +75,6 @@ services:
         condition: service_healthy
       manager-db:
         condition: service_started
-    command: npm run dev
     networks:
       - jornada-network
 
@@ -115,7 +114,6 @@ services:
         condition: service_healthy
       kitchen-db:
         condition: service_started
-    command: npm run dev
     networks:
       - jornada-network
 
@@ -155,7 +153,6 @@ services:
         condition: service_healthy
       warehouse-db:
         condition: service_started
-    command: npm run dev
     networks:
       - jornada-network
 
@@ -175,7 +172,6 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: npm run dev
     networks:
       - jornada-network
 
