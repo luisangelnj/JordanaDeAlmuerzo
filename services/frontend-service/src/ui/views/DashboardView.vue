@@ -6,19 +6,19 @@
         <place-order :orderStats="statsModel.orderStats" />
       </div>
 
-      <div class="col-span-1 xl:col-span-3 min-h-[50vh] max-h-[50vh] overflow-auto custom-scrollbar">
-        <recipes />
+      <div class="col-span-1 xl:col-span-6 min-h-[45vh] max-h-[45vh] overflow-auto custom-scrollbar">
+        <recent-orders :recentOrders="statsModel.recentOrders" />
+      </div>
+
+      <div class="col-span-1 xl:col-span-4 min-h-[50vh] max-h-[50vh] overflow-auto custom-scrollbar">
+        <recipes :recipes="statsModel.recipes" />
       </div>
 
       <div class="col-span-1 xl:col-span-3 max-h-[50vh] overflow-auto custom-scrollbar">
         <warehouse :inventory="statsModel.inventory" />
       </div>
 
-      <div class="col-span-1 xl:col-span-6 min-h-[45vh] max-h-[45vh] overflow-auto custom-scrollbar">
-        <recent-orders :recentOrders="statsModel.recentOrders" />
-      </div>
-
-      <div class="col-span-1 xl:col-span-6 min-h-[45vh] max-h-[45vh] overflow-auto custom-scrollbar">
+      <div class="col-span-1 xl:col-span-5 min-h-[50vh] max-h-[45vh] overflow-auto custom-scrollbar">
         <marketplace-puchases />
       </div>
 

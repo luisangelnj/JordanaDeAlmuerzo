@@ -1,9 +1,12 @@
 import express from 'express';
 import statusRoutes from './routes/kitchen.routes';
 
+import { recipes } from './config/recipes';
 import { startKitchenWorker } from './services/kitchen.worker';
 import { startIngredientConfirmationConsumer } from './services/ingredient-confirmation.consumer';
+import { publishRecipeList } from './services/recipe.publisher';
 
+const RECIPE_LIST_QUEUE = 'recipe_list_queue';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -19,10 +22,11 @@ app.listen(PORT, async () => {
     
     console.log('Starting Kitchen workers...');
     try {
-        // Iniciar ambos workers en paralelo
+        // Iniciar workers en paralelo
         await Promise.all([
             startKitchenWorker(),
-            startIngredientConfirmationConsumer()
+            startIngredientConfirmationConsumer(),
+            publishRecipeList()
         ]);
         console.log('All kitchen workers started successfully.');
     } catch (error) {

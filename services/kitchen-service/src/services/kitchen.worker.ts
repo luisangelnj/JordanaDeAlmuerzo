@@ -10,7 +10,7 @@ const OUTGOING_QUEUE = 'ingredient_requests_queue';
 
 export const startKitchenWorker = async () => {
     try {
-        // 2. Conexión a la Base de Datos de la Cocina
+        
         if (!AppDataSource.isInitialized) {
             await AppDataSource.initialize();
             console.log('[v] Kitchen connected to the database.');
@@ -29,7 +29,7 @@ export const startKitchenWorker = async () => {
                     const { batchId, quantity } = JSON.parse(msg.content.toString());
                     console.log(`[x] Received order batch ${batchId} for ${quantity} dishes.`);
 
-                    // 1. Seleccionar recetas aleatoriamente
+                    // Selección de recetas aleatoriamente
                     const preparedDishes: { name: string }[] = [];
                     for (let i = 0; i < quantity; i++) {
                         const randomRecipe = recipes[Math.floor(Math.random() * recipes.length)];
@@ -37,10 +37,8 @@ export const startKitchenWorker = async () => {
                     }
                     console.log(` -> Selected ${quantity} random dishes for batch ${batchId}.`);
                     
-                    // 2. GUARDAR LOS PLATOS SELECCIONADOS EN LA BASE DE DATOS
                     const preparedDishRepository = AppDataSource.getRepository(PreparedDish);
                     const dishesToSave = preparedDishes.map(dish => {
-                        // console.log(`Selected ${dish.name} for batch ${batchId}`);
                         const newDish = new PreparedDish();
                         newDish.batchId = batchId;
                         newDish.dishName = dish.name;
@@ -49,7 +47,6 @@ export const startKitchenWorker = async () => {
                     await preparedDishRepository.save(dishesToSave);
                     console.log(`[db] Saved ${dishesToSave.length} prepared dish records for batch ${batchId}.`);
                     
-                    // 3. Calcular el total de ingredientes requeridos para los platos seleccionados
                     const requiredIngredients = new Map<string, number>();
                     // (Lógica para calcular ingredientes basada en las recetas seleccionadas)
                     preparedDishes.forEach(dish => {
@@ -62,7 +59,7 @@ export const startKitchenWorker = async () => {
                         }
                     });
 
-                    // 4. Construir y enviar el mensaje para la bodega
+                    // Construir y enviar el mensaje para la bodega
                     const ingredientRequest = {
                         batchId: batchId,
                         ingredients: Array.from(requiredIngredients.entries()).map(([name, quantity]) => ({ name, quantity })),

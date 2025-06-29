@@ -6,6 +6,9 @@ import orderRoutes from './routes/order.routes';
 
 import { startOrderCompletionConsumer } from './services/order-completion.consumer';
 import { startInventoryConsumer } from './services/inventory.consumer'
+import { startRecipeConsumer } from './services/recipe.consumer';
+
+export let cachedRecipes = []; // <--- Variable para guardar las recetas en memoria
 
 // Cargar variables de entorno
 dotenv.config();
@@ -38,8 +41,11 @@ app.listen(PORT, async () => {
   //Iniciamos el worker para que escuche la cola de RabbitMQ
   console.log('Starting Manager workers...');
   try {
-      await startOrderCompletionConsumer();
-      await startInventoryConsumer()
+    await Promise.all([
+      startOrderCompletionConsumer(),
+      startInventoryConsumer(),
+      startRecipeConsumer()
+    ])
       console.log('[+] All manager workers started successfully.');
   } catch (error) {
       console.error('Failed to start the Order Completion consumer:', error);

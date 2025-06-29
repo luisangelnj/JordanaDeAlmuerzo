@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { AppDataSource } from '../data-source';
 import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
 import { CachedInventory } from "../entities/CachedInventory.entity";
+import { cachedRecipes } from '../index';
 
 const dashboardStatus: RequestHandler = async (req, res) => {
     try {
@@ -42,8 +43,8 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                 dishesCompleted: parseInt(orderStats[0].totalCompletedQuantity) || 0,
             },
             recentOrders,
-            inventory
-            // Aquí añadirías 'recentPurchases' si implementas su cacheo de la misma manera.
+            inventory,
+            recipes: cachedRecipes
         };
 
         res.status(200).json({

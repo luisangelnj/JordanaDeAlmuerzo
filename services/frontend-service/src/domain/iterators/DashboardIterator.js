@@ -21,6 +21,17 @@ export default {
                     quantity: item.quantity,
                     updatedAt: new Date ( item.updatedAt ).toLocaleDateString('es-MX')
                 }
+            }),
+            recipes: response.recipes.map(item => {
+                return {
+                    name: item.name,
+                    ingredients: item.ingredients.map(item => {
+                        return {
+                            name: item.name,
+                            quantity: item.quantity
+                        }
+                    })
+                }
             })
         }
     }
