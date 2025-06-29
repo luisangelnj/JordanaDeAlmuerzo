@@ -15,7 +15,9 @@ interface IngredientToPurchase {
     quantity: number;
 }
 
-async function purchaseIngredient(ingredient: IngredientToPurchase): Promise<{ name: string; quantityBought: number } | null> {
+async function purchaseIngredient(
+    ingredient: IngredientToPurchase,
+): Promise<{ name: string; quantityBought: number } | null> {
     try {
         console.log(` -> Attempting to buy ${ingredient.quantity} of ${ingredient.name}...`);
         const response = await axios.get(`${MARKET_API_URL}?ingredient=${ingredient.name}`);

@@ -9,6 +9,7 @@ import { publishInventoryUpdate } from './warehouse.worker';
 const INCOMING_QUEUE = 'purchase_confirmation_queue';
 const KITCHEN_CONFIRMATION_QUEUE = 'ingredient_ready_queue';
 const MARKETPLACE_PURCHASE_QUEUE = 'marketplace_purchase_queue';
+const PURCHASE_HISTORY_QUEUE = 'purchase_history_queue';
 
 export const startPurchaseConsumer = async () => {
     try {
@@ -31,7 +32,6 @@ export const startPurchaseConsumer = async () => {
                     const { batchId, purchasedIngredients } = JSON.parse(msg.content.toString());
                     console.log(`[+] Received purchase confirmation for batch ${batchId}.`);
 
-                    // 1. Actualizar el inventario con los ingredientes recién comprados
                     if (purchasedIngredients.length > 0) {
                         // Ordenar los ingredientes alfabéticamente por nombre antes de la transacción.
                         const sortedIngredients = purchasedIngredients.sort((a: { name: string; }, b: { name: any; }) => a.name.localeCompare(b.name));
@@ -43,15 +43,20 @@ export const startPurchaseConsumer = async () => {
                         });
                         console.log(`[db] Inventory updated for batch ${batchId}.`);
                         await publishInventoryUpdate();
+                        // Después de actualizar el stock, publica un evento con la información de la compra.
+                        const historyMessage = {
+                            purchasedItems: purchasedIngredients,
+                            timestamp: new Date()
+                        };
+                        await sendToQueue(PURCHASE_HISTORY_QUEUE, historyMessage);
+                        console.log(`[event] Published purchase history event for batch ${batchId}.`);
                     }
 
-                    // 2. Recuperar la solicitud original de la cocina
                     const originalRequest = await requestRepo.findOneBy({ batchId });
                     if (!originalRequest) {
                         throw new Error(`Could not find original ingredient request for batchId: ${batchId}`);
                     }
 
-                    // 3. Re-evaluar si ya tenemos suficiente stock para el pedido COMPLETO
                     const requiredIngredientNames = originalRequest.requestedIngredients.map((i: any) => i.name);
                     const currentStockItems = await inventoryRepo.findBy({ ingredientName: In(requiredIngredientNames) });
                     const currentStockMap = new Map(currentStockItems.map(i => [i.ingredientName, i.quantity]));
@@ -67,15 +72,13 @@ export const startPurchaseConsumer = async () => {
                         }
                     }
 
-                    // 4. Decidir el siguiente paso
                     if (isOrderComplete) {
                         // Aquí el pedido debe estár completo.
                         console.log(`[v] Purchase complete! All ingredients for batch ${batchId} are now available.`);
 
-                        // 1. Ordenar la lista de ingredientes requeridos alfabéticamente
+                        // Ordenar la lista de ingredientes requeridos alfabéticamente
                         const sortedRequiredIngredients = (originalRequest.requestedIngredients as any[]).sort((a, b) => a.name.localeCompare(b.name));
 
-                        // 2. Descontar el stock total y notificar a la cocina (en una transacción)
                         await AppDataSource.manager.transaction(async (manager) => {
                             // Iterar sobre la lista YA ORDENADA.
                             for (const required of sortedRequiredIngredients) {
@@ -90,7 +93,7 @@ export const startPurchaseConsumer = async () => {
                         await publishInventoryUpdate();
 
                     } else {
-                        // AÚN FALTAN COSAS. Volver a enviar un pedido de compra solo con lo que falta.
+                        // Si aún faltan cosas por comprar. Volver a enviar un pedido de compra solo con lo que falta.
                         console.log(`[!] Order for batch ${batchId} still incomplete. Re-issuing purchase order for remaining items.`);
                         await sendToQueue(MARKETPLACE_PURCHASE_QUEUE, { batchId, ingredients: stillMissingIngredients });
                     }

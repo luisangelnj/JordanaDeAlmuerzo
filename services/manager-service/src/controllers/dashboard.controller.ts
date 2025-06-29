@@ -3,14 +3,16 @@ import { AppDataSource } from '../data-source';
 import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
 import { CachedInventory } from "../entities/CachedInventory.entity";
 import { cachedRecipes } from '../index';
+import { PurchaseHistory } from '../entities/PurchaseHistory.entity';
 
 const dashboardStatus: RequestHandler = async (req, res) => {
     try {
         const orderRepository = AppDataSource.getRepository(OrderBatch);
         const inventoryRepository = AppDataSource.getRepository(CachedInventory);
+        const purchaseRepo = AppDataSource.getRepository(PurchaseHistory);
 
         // Ejecutamos todas las consultas en paralelo para máxima eficiencia
-        const [orderStats, recentOrders, inventory] = await Promise.all([
+        const [orderStats, recentOrders, inventory, recentPurchases] = await Promise.all([
             // Consulta 1: Obtener contadores de órdenes
             orderRepository.query(
                 `SELECT 
@@ -19,7 +21,7 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                     SUM(quantity) FILTER (WHERE status = 'COMPLETED') AS "totalCompletedQuantity"
                 FROM order_batches`
             ),
-            // Consulta 2: Obtener las últimas 5 órdenes
+            // Consulta 2: Obtener las últimas 10 órdenes
             orderRepository.query(`
                 SELECT * FROM order_batches
                 ORDER BY 
@@ -30,10 +32,11 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                     ELSE 4
                     END,
                     "createdAt" DESC
-                LIMIT 10
+                LIMIT 15
             `),
             // Consulta 3: Obtener todo el inventario cacheado
-            inventoryRepository.find({ order: { ingredientName: 'ASC' } })
+            inventoryRepository.find({ order: { ingredientName: 'ASC' } }),
+            purchaseRepo.find({ order: { purchasedAt: 'DESC' }, take: 15 })
         ]);
 
         const responseData = {
@@ -44,7 +47,8 @@ const dashboardStatus: RequestHandler = async (req, res) => {
             },
             recentOrders,
             inventory,
-            recipes: cachedRecipes
+            recipes: cachedRecipes,
+            recentPurchases
         };
 
         res.status(200).json({

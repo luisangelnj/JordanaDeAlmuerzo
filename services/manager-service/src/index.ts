@@ -7,6 +7,7 @@ import orderRoutes from './routes/order.routes';
 import { startOrderCompletionConsumer } from './services/order-completion.consumer';
 import { startInventoryConsumer } from './services/inventory.consumer'
 import { startRecipeConsumer } from './services/recipe.consumer';
+import { startPurchaseHistoryConsumer } from './services/purchase-history.consumer';
 
 export let cachedRecipes = []; // <--- Variable para guardar las recetas en memoria
 
@@ -44,7 +45,8 @@ app.listen(PORT, async () => {
     await Promise.all([
       startOrderCompletionConsumer(),
       startInventoryConsumer(),
-      startRecipeConsumer()
+      startRecipeConsumer(),
+      startPurchaseHistoryConsumer()
     ])
       console.log('[+] All manager workers started successfully.');
   } catch (error) {

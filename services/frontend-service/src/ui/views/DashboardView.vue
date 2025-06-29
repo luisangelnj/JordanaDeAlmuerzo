@@ -19,7 +19,7 @@
       </div>
 
       <div class="col-span-1 xl:col-span-5 min-h-[50vh] max-h-[45vh] overflow-auto custom-scrollbar">
-        <marketplace-puchases />
+        <marketplace-puchases :recentPurchases="statsModel.recentPurchases" />
       </div>
 
     </div>
@@ -39,6 +39,7 @@ import { useLoading } from 'vue-loading-overlay'
 import { onMounted, ref } from 'vue'
 
 import useDashboard from '@/ui/composables/useDashboard'
+import { onUnmounted } from 'vue'
 
 const $loading = useLoading({
     color: '#007BFF'
@@ -46,26 +47,50 @@ const $loading = useLoading({
 const toast = useToast({
     timeout: 5000
 });
-let pollingInterval = null;
 
 const {
   statsModel,
   getDashboardStats
 } = useDashboard()
 
+let pollingTimeout = null
+let isUnmounted = false
+
 onMounted(async () => {
   const loader = $loading.show()
-  try{
+  try {
     await getDashboardStats()
 
-    pollingInterval = setInterval( async ()=> {
-      await getDashboardStats(false)
-    }, 2500)
+    // Iniciar polling recursivo
+    startPolling()
   } catch (error) {
     toast.error('Ha ocurrido un error, intentalo en un momento')
   } finally {
     loader.hide()
   }
 })
+
+onUnmounted(() => {
+  isUnmounted = true
+  if (pollingTimeout) clearTimeout(pollingTimeout)
+})
+
+function startPolling() {
+  const poll = async () => {
+    if (isUnmounted) return
+
+    try {
+      await getDashboardStats(false)
+    } catch (error) {
+      console.error('Error en polling:', error)
+    } finally {
+      if (!isUnmounted) {
+        pollingTimeout = setTimeout(poll, 2000) // espera 2 segundos antes de la siguiente llamada
+      }
+    }
+  }
+
+  poll()
+}
 
 </script>

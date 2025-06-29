@@ -1,6 +1,6 @@
 <template>
   <div
-    class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-4 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6"
+    class="overflow-hidden min-h-full rounded-2xl border border-gray-200 bg-white px-4 pb-4 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6"
   >
     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -19,7 +19,7 @@
     <div class="max-w-full overflow-x-auto custom-scrollbar">
       <table class="min-w-full">
         <thead>
-          <tr class="border-t border-gray-100 dark:border-gray-800">
+          <tr class="border-t border-b border-gray-100 dark:border-gray-800">
             <th class="py-3 text-left w-2/3">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Platillo</p>
             </th>

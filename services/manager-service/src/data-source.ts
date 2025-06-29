@@ -5,6 +5,7 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { OrderBatch } from './entities/OrderBatch.entity';
 import { CachedInventory } from './entities/CachedInventory.entity';
+import { PurchaseHistory } from './entities/PurchaseHistory.entity';
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
@@ -15,6 +16,6 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_DATABASE,
     synchronize: false, // ¡MUY IMPORTANTE! Nunca usar 'true' en producción. Usaremos migraciones.
     logging: false, // Muestra las consultas SQL en la consola (útil para depurar)
-    entities: [OrderBatch, CachedInventory], // Le dice a TypeORM qué entidades (tablas) manejar
+    entities: [OrderBatch, CachedInventory, PurchaseHistory], // Le dice a TypeORM qué entidades (tablas) manejar
     migrations: ['src/migrations/*.ts'], // Dónde encontrar los archivos de migración
 });

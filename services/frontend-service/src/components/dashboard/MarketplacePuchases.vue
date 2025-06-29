@@ -20,40 +20,31 @@
       <table class="min-w-full">
         <thead>
           <tr class="border-t border-b border-gray-100 dark:border-gray-800">
-            <th class="py-3 text-left">
+            <th class="py-3 text-left w-6/12">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Fecha</p>
+            </th>
+            <th class="py-3 text-left w-4/12">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Ingrediente</p>
             </th>
-            <th class="py-3 text-left">
+            <th class="py-3 text-left w-2/12">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Cantidad</p>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="(product, index) in purchases"
+            v-for="(product, index) in recentPurchases"
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
-            <td class="py-3 whitespace-nowrap">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.name }}</p>
+            <td class="py-3 whitespace-nowrap w-6/12">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.purchasedAt }}</p>
             </td>
-            <td class="py-3 whitespace-nowrap">
+            <td class="py-3 whitespace-nowrap w-4/12">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400 capitalize">{{ product.ingredientName }}</p>
+            </td>
+            <td class="py-3 whitespace-nowrap w-2/12">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.quantity }}</p>
-            </td>
-            <td class="py-3 whitespace-nowrap">
-              <span
-                :class="{
-                  'rounded-full px-2 py-0.5 text-theme-xs font-medium': true,
-                  'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500':
-                    product.status === 'Delivered',
-                  'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400':
-                    product.status === 'Pending',
-                  'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500':
-                    product.status === 'Canceled',
-                }"
-              >
-                {{ product.status }}
-              </span>
             </td>
           </tr>
         </tbody>
@@ -65,6 +56,11 @@
 <script setup>
 import { ref } from 'vue'
 
-const purchases = ref([])
+defineProps({
+    recentPurchases: {
+        type: Array,
+        default: () => []
+    }
+});
 
 </script>
