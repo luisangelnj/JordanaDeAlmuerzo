@@ -1,6 +1,18 @@
 export default {
 
     ResponseToDashboardStats: (response) => {
+        const ingredientTranslations = {
+            cheese: "queso",
+            chicken: "pollo",
+            ketchup: "catsup",
+            lemon: "limón",
+            lettuce: "lechuga",
+            meat: "carne",
+            onion: "cebolla",
+            potato: "papa",
+            rice: "arroz",
+            tomato: "jitomate"
+        };
         return {
             orderStats: {
                 ordersInProgress: response.stats.ordersInProgress,
@@ -17,7 +29,7 @@ export default {
             }),
             inventory: response.inventory.map(item => {
                 return {
-                    ingredientName: item.ingredientName,
+                    ingredientName: ingredientTranslations[item.ingredientName] || item.ingredientName,
                     quantity: item.quantity,
                     updatedAt: new Date ( item.updatedAt ).toLocaleDateString('es-MX')
                 }
@@ -25,10 +37,10 @@ export default {
             recipes: response.recipes.map(item => {
                 return {
                     name: item.name,
-                    ingredients: item.ingredients.map(item => {
+                    ingredients: item.ingredients.map(ingredient => {
                         return {
-                            name: item.name,
-                            quantity: item.quantity
+                            name: ingredientTranslations[ingredient.name] || ingredient.name,
+                            quantity: ingredient.quantity
                         }
                     })
                 }

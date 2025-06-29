@@ -30,7 +30,10 @@
         <div class="max-w-full flex text-center divide-x divide-gray-700 space-x-3">
             <div class="w-4/12 flex flex-col items-center justify-center">
                 <p>Órdenes en proceso </p>
-                <p class="font-bold text-2xl">{{ orderStats.ordersInProgress }} ⏳</p>
+                <div class="flex items-center justify-center space-x-1">
+                    <p class="font-bold text-2xl">{{ orderStats.ordersInProgress }}</p>
+                    <p :class="{ 'animate-spin': orderStats.ordersInProgress > 0 }">⏳</p>
+                </div>
             </div>
             <div class="w-4/12 flex flex-col items-center justify-center">
                 <p>Órdenes completadas</p>
