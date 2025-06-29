@@ -30,12 +30,12 @@
         </thead>
         <tbody>
           <tr
-            v-for="(product, index) in ingredients"
+            v-for="(product, index) in inventory"
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
             <td class="py-3 whitespace-nowrap">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.name }}</p>
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.ingredientName }}</p>
             </td>
             <td class="py-3 whitespace-nowrap">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.quantity }}</p>
@@ -50,34 +50,11 @@
 <script setup>
 import { ref } from 'vue'
 
-const ingredients = ref([
-  {
-    name: 'tomato',
-    quantity: 2,
-  },
-  {
-    name: 'rice',
-    quantity: 1,
-  },
-  {
-    name: 'meat',
-    quantity: 2,
-  },
-    {
-    name: 'potato',
-    quantity: 2,
-  },
-  {
-    name: 'onion',
-    quantity: 2,
-  },
-  {
-    name: 'ketchup',
-    quantity: 2,
-  },
-  {
-    name: 'cheese',
-    quantity: 2,
-  },
-])
+defineProps({
+    inventory: {
+        type: Array,
+        default: () => []
+    }
+});
+
 </script>

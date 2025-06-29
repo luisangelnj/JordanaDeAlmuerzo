@@ -1,6 +1,6 @@
 <template>
   <div
-    class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-4 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6"
+    class="overflow-hidden min-h-full rounded-2xl border border-gray-200 bg-white px-4 pb-4 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6"
   >
     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -24,7 +24,7 @@
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Id órden</p>
             </th>
             <th class="py-3 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400"># de platos</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">No. de platos</p>
             </th>
             <th class="py-3 text-left">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
@@ -33,12 +33,12 @@
         </thead>
         <tbody>
           <tr
-            v-for="(product, index) in orders"
+            v-for="(product, index) in recentOrders"
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
             <td class="py-3 whitespace-nowrap">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.name }}</p>
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.id }}</p>
             </td>
             <td class="py-3 whitespace-nowrap">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.quantity }}</p>
@@ -48,11 +48,11 @@
                 :class="{
                   'rounded-full px-2 py-0.5 text-theme-xs font-medium': true,
                   'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500':
-                    product.status === 'Delivered',
+                    product.status === 'COMPLETED',
                   'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400':
-                    product.status === 'Pending',
+                    product.status === 'PENDING',
                   'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500':
-                    product.status === 'Canceled',
+                    product.status === 'FAILED',
                 }"
               >
                 {{ product.status }}
@@ -68,38 +68,11 @@
 <script setup>
 import { ref } from 'vue'
 
-const orders = ref([
-  {
-    name: 'f672c64b-8f1a',
-    quantity: 2,
-    image: '/images/product/product-01.jpg',
-    category: 'Laptop',
-    price: '$2399.00',
-    status: 'Delivered',
-  },
-  {
-    name: '2fb99311-adf8',
-    quantity: 1,
-    image: '/images/product/product-02.jpg',
-    category: 'Watch',
-    price: '$879.00',
-    status: 'Pending',
-  },
-  {
-    name: 'f672c64b-8f1a',
-    quantity: 2,
-    image: '/images/product/product-03.jpg',
-    category: 'SmartPhone',
-    price: '$1869.00',
-    status: 'Delivered',
-  },
-    {
-    name: 'f672c64b-8f1a',
-    quantity: 2,
-    image: '/images/product/product-03.jpg',
-    category: 'SmartPhone',
-    price: '$1869.00',
-    status: 'Delivered',
-  },
-])
+defineProps({
+    recentOrders: {
+        type: Array,
+        default: () => []
+    }
+});
+
 </script>

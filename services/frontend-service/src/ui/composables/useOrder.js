@@ -1,12 +1,10 @@
 import { ref } from "vue";
 import { useLoading } from 'vue-loading-overlay'
-import { useRouter } from 'vue-router';
 import { useToast } from "vue-toastification";
 
 import Order from "@/domain/useCases/Order";
 
 const useOrder = () => {
-    const router = useRouter()
     const $loading = useLoading({
         color: '#007BFF'
     });
@@ -19,7 +17,6 @@ const useOrder = () => {
         quantity: 1
     })
     const errors = ref({})
-
 
     const createOrder = async () => {
         const loader = $loading.show();

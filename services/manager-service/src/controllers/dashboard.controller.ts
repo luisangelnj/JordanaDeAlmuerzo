@@ -1,10 +1,64 @@
 import { RequestHandler } from "express";
-import { sendToQueue } from "../services/rabbitmq.service";
 import { AppDataSource } from '../data-source';
 import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
+import { CachedInventory } from "../entities/CachedInventory.entity";
 
 const dashboardStatus: RequestHandler = async (req, res) => {
-    const orderRepo = AppDataSource.getRepository(OrderBatch);
-    // const inventoryRepo = AppDataSource.getRepository(CachedInventory);
+    try {
+        const orderRepository = AppDataSource.getRepository(OrderBatch);
+        const inventoryRepository = AppDataSource.getRepository(CachedInventory);
 
+        // Ejecutamos todas las consultas en paralelo para máxima eficiencia
+        const [orderStats, recentOrders, inventory] = await Promise.all([
+            // Consulta 1: Obtener contadores de órdenes
+            orderRepository.query(
+                `SELECT 
+                    COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'PREPARING') as "inProgress",
+                    COUNT(*) FILTER (WHERE status = 'COMPLETED') as "completed",
+                    SUM(quantity) FILTER (WHERE status = 'COMPLETED') AS "totalCompletedQuantity"
+                FROM order_batches`
+            ),
+            // Consulta 2: Obtener las últimas 5 órdenes
+            orderRepository.query(`
+                SELECT * FROM order_batches
+                ORDER BY 
+                    CASE 
+                    WHEN status = 'PENDING' THEN 1
+                    WHEN status = 'PREPARING' THEN 2
+                    WHEN status = 'COMPLETED' THEN 3
+                    ELSE 4
+                    END,
+                    "createdAt" DESC
+                LIMIT 10
+            `),
+            // Consulta 3: Obtener todo el inventario cacheado
+            inventoryRepository.find({ order: { ingredientName: 'ASC' } })
+        ]);
+
+        const responseData = {
+            stats: {
+                ordersInProgress: parseInt(orderStats[0].inProgress) || 0,
+                ordersCompleted: parseInt(orderStats[0].completed) || 0,
+                dishesCompleted: parseInt(orderStats[0].totalCompletedQuantity) || 0,
+            },
+            recentOrders,
+            inventory
+            // Aquí añadirías 'recentPurchases' si implementas su cacheo de la misma manera.
+        };
+
+        res.status(200).json({
+            success: true,
+            message: `Data retrieved successfully.`,
+            data: responseData
+        });
+
+
+    } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+        res.status(500).json({ message: 'Error fetching dashboard data' });
+    }
+}
+
+export default {
+    dashboardStatus
 }

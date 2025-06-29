@@ -1,4 +1,3 @@
-import { default } from '../../ui/views/HomeView.vue';
 <template>
     <div
         class="flex flex-col justify-center space-y-8 rounded-2xl border h-full border-gray-200 bg-white text-white px-5 py-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
@@ -30,16 +29,16 @@ import { default } from '../../ui/views/HomeView.vue';
 
         <div class="max-w-full flex text-center divide-x divide-gray-700 space-x-3">
             <div class="w-4/12 flex flex-col items-center justify-center">
-                <p>Órdenes en proceso ⏳</p>
-                <p class="font-bold text-2xl">3</p>
+                <p>Órdenes en proceso </p>
+                <p class="font-bold text-2xl">{{ orderStats.ordersInProgress }} ⏳</p>
             </div>
             <div class="w-4/12 flex flex-col items-center justify-center">
-                <p>Órdenes completadas ✅</p>
-                <p class="font-bold text-2xl">12</p>
+                <p>Órdenes completadas</p>
+                <p class="font-bold text-2xl">{{ orderStats.ordersCompleted }} ✅</p>
             </div>
             <div class="w-4/12 flex flex-col items-center justify-center">
-                <p>Platillos completados ✅</p>
-                <p class="font-bold text-2xl">450</p>
+                <p>Platillos completados</p>
+                <p class="font-bold text-2xl">{{ orderStats.dishesCompleted }} ✅</p>
             </div>
         </div>
     </div>
@@ -47,6 +46,13 @@ import { default } from '../../ui/views/HomeView.vue';
 
 <script setup>
 import useOrder from '@/ui/composables/useOrder';
+
+defineProps({
+    orderStats: {
+        type: Object,
+        default: () => {}
+    }
+});
 
 const { 
     orderModel,
