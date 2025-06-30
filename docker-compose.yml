@@ -1,17 +1,20 @@
 
 services:
-  # frontend:
-  #   build:
-  #     context: ./services/frontend-service
-  #     dockerfile: Dockerfile.dev
-  #   container_name: frontend-service
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./services/frontend-service:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - jornada-network
+  frontend:
+    build:
+      context: ./services/frontend-service
+      dockerfile: Dockerfile.dev
+    container_name: frontend-service
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./services/frontend-service:/app
+      - /app/node_modules
+    depends_on:
+      manager:
+        condition: service_started
+    networks:
+      - jornada-network
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -44,14 +47,6 @@ services:
       - manager-db-data:/var/lib/postgresql/data # Persiste los datos
     networks:
       - jornada-network
-
-  # dozzle:
-  #   container_name: dozzle
-  #   image: amir20/dozzle:latest
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   ports:
-  #     - "8888:8080" # Accede a Dozzle en localhost:8888
 
   manager:
     build:
