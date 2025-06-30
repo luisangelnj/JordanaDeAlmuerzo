@@ -118,7 +118,7 @@
                                         {{ product.requestedAt }}
                                     </p>
                                 </td>
-                                <td class="py-3 whitespace-nowrap align-top">
+                                <td class="py-3 whitespace-nowrap align-top flex">
                                     <span :class="{
                                         'rounded-full px-2 py-0.5 text-theme-xs font-medium': true,
 
@@ -139,6 +139,12 @@
                                     }">
                                         {{ product.status }}
                                     </span>
+                                    <p
+                                        v-if="product.status == 'En cola' || product.status == 'Comprando ingredientes' || product.status == 'Preparando platillos'"
+                                        class="animate-spin"
+                                    >
+                                        ⏳
+                                    </p>
                                 </td>
                             </tr>
                         </tbody>

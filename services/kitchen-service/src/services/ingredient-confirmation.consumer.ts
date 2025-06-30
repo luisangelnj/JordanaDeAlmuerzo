@@ -51,13 +51,13 @@ export const startIngredientConfirmationConsumer = async () => {
                     console.log(`[v] All dishes for batch ${batchId} are COMPLETED.`);
 
                     // 4. Enviar la notificación final al manager-service
-                    const dishesForBatch = await dishRepo.findBy({ batchId });
-                    const dishNames = dishesForBatch.map(d => d.dishName);
+                    // const dishesForBatch = await dishRepo.findBy({ batchId });
+                    // const dishNames = dishesForBatch.map(d => d.dishName);
 
                     const finalMessage = {
                         batchId,
                         status: 'COMPLETED',
-                        preparedDishes: dishNames
+                        // preparedDishes: dishNames
                     };
                     await sendToQueue(ORDER_STATUS_UPDATE_QUEUE, finalMessage);
                     console.log(`[>] FINAL completion message for batch ${batchId} sent to ${ORDER_STATUS_UPDATE_QUEUE}.`);

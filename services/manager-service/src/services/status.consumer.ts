@@ -40,10 +40,13 @@ export const startStatusConsumer = async () => {
                             order.statusDetail = statusDetail;
                         }
 
-                        // 3. Si es el estado final "COMPLETED", guarda la lista de platos.
-                        if (status === OrderStatus.COMPLETED && preparedDishes) {
-                            order.statusDetail = 'Order completed and all dishes delivered.';
+                        if (preparedDishes) {
                             order.preparedDishes = preparedDishes
+                        }
+
+                        // 3. Si es el estado final "COMPLETED"
+                        if (status === OrderStatus.COMPLETED) {
+                            order.statusDetail = 'Order completed and all dishes delivered.';
                         }
                         
                         await orderRepo.save(order);

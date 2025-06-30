@@ -2,11 +2,12 @@ import { connect } from 'amqplib';
 import { recipes, Ingredient } from '../config/recipes';
 import { sendToQueue } from './rabbitmq.service';
 import { AppDataSource } from '../data-source';
-import { PreparedDish } from '../entities/PreparedDish.entity';
+import { DishStatus, PreparedDish } from '../entities/PreparedDish.entity';
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
 const INCOMING_QUEUE = 'order_requests_queue';
 const OUTGOING_QUEUE = 'ingredient_requests_queue';
+const ORDER_STATUS_UPDATE_QUEUE = 'order_status_update_queue';
 
 export const startKitchenWorker = async () => {
     try {
@@ -47,6 +48,14 @@ export const startKitchenWorker = async () => {
                     await preparedDishRepository.save(dishesToSave);
                     console.log(`[db] Saved ${dishesToSave.length} prepared dish records for batch ${batchId}.`);
                     
+                    const dishNames = preparedDishes.map(d => d.name);
+                    const selectedDishesMessage = {
+                        batchId,
+                        preparedDishes: dishNames
+                    };
+                    await sendToQueue(ORDER_STATUS_UPDATE_QUEUE, selectedDishesMessage);
+                    console.log(`[>] Selected dishes message for batch ${batchId} sent to ${ORDER_STATUS_UPDATE_QUEUE}.`);
+
                     const requiredIngredients = new Map<string, number>();
                     // (Lógica para calcular ingredientes basada en las recetas seleccionadas)
                     preparedDishes.forEach(dish => {
