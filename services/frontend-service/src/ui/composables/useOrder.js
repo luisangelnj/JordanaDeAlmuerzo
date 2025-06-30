@@ -12,12 +12,18 @@ const useOrder = () => {
         position: "bottom-right",
         timeout: 3000
     });
+    const page = ref(1);
+    const totalPages = ref()
+    const totalRecords = ref()
+    const perPage = ref(15)
 
+    const orderList = ref([])
     const orderModel = ref({
         orderId: '',
         quantity: 1
     })
     const errors = ref({})
+
 
     const validateCreateForm = () => {
         const newErrors = {}
@@ -64,11 +70,37 @@ const useOrder = () => {
         }
     }
 
+    const getAllOrders = async (loading = true) => {
+        const loader = loading ? $loading.show() : null;
+        try {
+            
+            const resp = await Order.getAllOrders(page.value, perPage.value);
+            if (resp.success == false) throw resp;
+
+            orderList.value = resp.values
+            totalPages.value = resp.totalPages
+            totalRecords.value = resp.totalRecords
+
+            return resp
+
+        } catch (error) {
+            toast.error('Ha ocurrido un error al listar las órdenes. Inténtalo de nuevo más tarde')
+            throw new Error('Error al obtener listado de órdenes: ' + error);
+        } finally {
+            loading ? loader.hide() : null
+        }
+    }
+
     return {
+        orderList,
         orderModel,
         errors,
+        totalPages,
+        totalRecords,
+        page,
 
-        createOrder
+        createOrder,
+        getAllOrders
     }
 }
 

@@ -72,15 +72,11 @@ onMounted(async () => {
   }
 })
 
-onUnmounted(() => {
-  isUnmounted = true
-  if (pollingTimeout) clearTimeout(pollingTimeout)
-})
 
 function startPolling() {
   const poll = async () => {
     if (isUnmounted) return
-
+    
     try {
       await getDashboardStats(false)
     } catch (error) {
@@ -91,8 +87,13 @@ function startPolling() {
       }
     }
   }
-
+  
   poll()
 }
+
+onUnmounted(() => {
+  isUnmounted = true
+  if (pollingTimeout) clearTimeout(pollingTimeout)
+})
 
 </script>
