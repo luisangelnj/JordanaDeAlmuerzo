@@ -31,6 +31,9 @@ export class OrderBatch {
     @Column()
     statusDetail!: string;
 
+    @Column({ type: 'jsonb', nullable: true })
+    preparedDishes?: any;
+
     @CreateDateColumn() // Columna para fecha en la que se solicitó la órden
     requestedAt!: Date;
 

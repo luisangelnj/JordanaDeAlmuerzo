@@ -40,13 +40,10 @@ export const startStatusConsumer = async () => {
                             order.statusDetail = statusDetail;
                         }
 
-                        console.log(preparedDishes);
-                        
-
                         // 3. Si es el estado final "COMPLETED", guarda la lista de platos.
-                        //    (Asegúrate de tener la columna 'dishes' de tipo jsonb en tu entidad OrderBatch)
                         if (status === OrderStatus.COMPLETED && preparedDishes) {
                             order.statusDetail = 'Order completed and all dishes delivered.';
+                            order.preparedDishes = preparedDishes
                         }
                         
                         await orderRepo.save(order);
