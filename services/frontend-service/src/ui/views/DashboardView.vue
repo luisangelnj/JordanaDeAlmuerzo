@@ -1,12 +1,12 @@
 <template>
   <admin-layout>
-    <div class="grid grid-cols-12 gap-4 md:gap-2 max-h-[90vh]">
+    <div class="grid sm:grid-cols-1 xl:grid-cols-12 gap-4 md:gap-2 lg:max-h-[90vh]">
 
-      <div class="col-span-1 xl:col-span-6 max-h-[50vh]">
+      <div class="col-span-1 xl:col-span-7 max-h-[50vh]">
         <place-order :orderStats="statsModel.orderStats" />
       </div>
 
-      <div class="col-span-1 xl:col-span-6 min-h-[45vh] max-h-[45vh] overflow-auto custom-scrollbar">
+      <div class="col-span-1 xl:col-span-5 min-h-[45vh] max-h-[45vh] overflow-auto custom-scrollbar">
         <recent-orders :recentOrders="statsModel.recentOrders" />
       </div>
 
@@ -45,7 +45,8 @@ const $loading = useLoading({
     color: '#007BFF'
 });
 const toast = useToast({
-    timeout: 5000
+  timeout: 5000,
+  position: "bottom-right",
 });
 
 const {

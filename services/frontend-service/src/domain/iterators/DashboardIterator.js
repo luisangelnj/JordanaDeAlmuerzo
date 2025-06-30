@@ -13,6 +13,12 @@ export default {
             rice: "arroz",
             tomato: "jitomate"
         };
+        const statusTranslations = {
+            PENDING: "En cola",
+            PURCHASING_INGREDIENTS: "Comprando ingredientes",
+            PREPARING_DISHES: "Preparando platillos",
+            COMPLETED: "Órden completada"
+        }
         return {
             orderStats: {
                 ordersInProgress: response.stats.ordersInProgress,
@@ -22,8 +28,9 @@ export default {
             recentOrders: response.recentOrders.map(item => {
                 return {
                     id: item.id,
+                    orderNo: item.orderNo,
                     quantity: item.quantity,
-                    status: item.status,
+                    status: statusTranslations[item.status] || item.status,
                     requestedAt: new Date( item.requestedAt ).toLocaleDateString('es-MX')
                 }
             }),

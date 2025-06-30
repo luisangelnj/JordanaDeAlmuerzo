@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 // Definimos los posibles estados de una orden
 export enum OrderStatus {
     PENDING = 'PENDING',
-    PREPARING = 'PREPARING',
+    PURCHASING_INGREDIENTS = 'PURCHASING_INGREDIENTS',
+    PREPARING_DISHES = 'PREPARING_DISHES',
     COMPLETED = 'COMPLETED',
     FAILED = 'FAILED',
 }
@@ -13,6 +14,9 @@ export class OrderBatch {
 
     @PrimaryGeneratedColumn('uuid') // Genera un ID único universal (mejor que un número para sistemas distribuidos)
     id!: string;
+
+    @Column({ type: 'int', generated: 'increment', unique: true })
+    orderNo!: number;
 
     @Column({ type: 'int' })
     quantity!: number; // La cantidad de platos solicitados
@@ -24,9 +28,15 @@ export class OrderBatch {
     })
     status!: OrderStatus;
 
+    @Column()
+    statusDetail!: string;
+
     @CreateDateColumn() // Columna para fecha en la que se solicitó la órden
     requestedAt!: Date;
 
     @CreateDateColumn() // Columna que se llena automáticamente con la fecha de creación
     createdAt!: Date;
+
+    @UpdateDateColumn({ nullable: true })
+    updatedAt?: Date;
 }

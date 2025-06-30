@@ -19,15 +19,15 @@
     <div class="max-w-full overflow-x-auto custom-scrollbar">
       <table class="min-w-full">
         <thead>
-          <tr class="border-t border-gray-100 dark:border-gray-800">
-            <th class="py-3 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Id órden</p>
+          <tr class="border-t border-b border-gray-100 dark:border-gray-800">
+            <th class="py-3 text-left w-1/3">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Folio</p>
             </th>
-            <th class="py-3 text-left">
+            <th class="py-3 text-left w-1/3">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">No. de platos</p>
             </th>
-            <th class="py-3 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+            <th class="py-3 text-left w-1/3">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Estado</p>
             </th>
           </tr>
         </thead>
@@ -37,22 +37,31 @@
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
-            <td class="py-3 whitespace-nowrap">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.id }}</p>
+            <td class="py-3 whitespace-nowrap w-1/3">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.orderNo }}</p>
             </td>
-            <td class="py-3 whitespace-nowrap">
+            <td class="py-3 whitespace-nowrap w-1/3">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.quantity }}</p>
             </td>
-            <td class="py-3 whitespace-nowrap">
+            <td class="py-3 whitespace-nowrap w-1/3">
               <span
                 :class="{
                   'rounded-full px-2 py-0.5 text-theme-xs font-medium': true,
+
+                  'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/15 dark:text-yellow-400':
+                    product.status === 'En cola',
+
+                  'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400':
+                    product.status === 'Comprando ingredientes',
+
+                  'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400':
+                    product.status === 'Preparando platillos',
+
                   'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500':
-                    product.status === 'COMPLETED',
-                  'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400':
-                    product.status === 'PENDING',
+                    product.status === 'Órden completada',
+
                   'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500':
-                    product.status === 'FAILED',
+                    product.status === 'Fallida',
                 }"
               >
                 {{ product.status }}

@@ -13,7 +13,7 @@
                 @click="createOrder"
                 class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white w-10/12 py-1 text-xl font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:active:bg-gray-900 dark:hover:text-gray-200"
             >
-                Pedir platos
+                Pedir platillos
             </button>
             <input
                 v-model="orderModel.quantity"

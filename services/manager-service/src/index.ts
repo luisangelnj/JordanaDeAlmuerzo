@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 // Importar nuestras rutas
 import orderRoutes from './routes/order.routes';
 
-import { startOrderCompletionConsumer } from './services/order-completion.consumer';
+import { startStatusConsumer } from './services/status.consumer';
 import { startInventoryConsumer } from './services/inventory.consumer'
 import { startRecipeConsumer } from './services/recipe.consumer';
 import { startPurchaseHistoryConsumer } from './services/purchase-history.consumer';
@@ -43,7 +43,7 @@ app.listen(PORT, async () => {
   console.log('Starting Manager workers...');
   try {
     await Promise.all([
-      startOrderCompletionConsumer(),
+      startStatusConsumer(),
       startInventoryConsumer(),
       startRecipeConsumer(),
       startPurchaseHistoryConsumer()

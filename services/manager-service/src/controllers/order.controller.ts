@@ -26,6 +26,7 @@ const createOrder: RequestHandler = async (req, res) => {
         const newOrder = new OrderBatch();
         newOrder.quantity = quantity;
         newOrder.status = OrderStatus.PENDING;
+        newOrder.statusDetail = "Order created successfully"
 
         await orderRepository.save(newOrder);
 

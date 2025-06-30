@@ -16,7 +16,7 @@ const dashboardStatus: RequestHandler = async (req, res) => {
             // Consulta 1: Obtener contadores de órdenes
             orderRepository.query(
                 `SELECT 
-                    COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'PREPARING') as "inProgress",
+                    COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'PURCHASING_INGREDIENTS' OR status = 'PREPARING_DISHES') as "inProgress",
                     COUNT(*) FILTER (WHERE status = 'COMPLETED') as "completed",
                     SUM(quantity) FILTER (WHERE status = 'COMPLETED') AS "totalCompletedQuantity"
                 FROM order_batches`
@@ -27,11 +27,12 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                 ORDER BY 
                     CASE 
                     WHEN status = 'PENDING' THEN 1
-                    WHEN status = 'PREPARING' THEN 2
-                    WHEN status = 'COMPLETED' THEN 3
-                    ELSE 4
+                    WHEN status = 'PURCHASING_INGREDIENTS' THEN 2
+                    WHEN status = 'PREPARING_DISHES' THEN 3
+                    WHEN status = 'COMPLETED' THEN 4
+                    ELSE 5
                     END,
-                    "createdAt" DESC
+                    "updatedAt" DESC
                 LIMIT 15
             `),
             // Consulta 3: Obtener todo el inventario cacheado

@@ -10,6 +10,7 @@ const INCOMING_QUEUE = 'ingredient_requests_queue';
 const INGREDIENT_READY_QUEUE = 'ingredient_ready_queue';
 const MARKETPLACE_PURCHASE_QUEUE = 'marketplace_purchase_queue';
 const INVENTORY_UPDATES_QUEUE = 'inventory_updates_queue';
+const ORDER_STATUS_UPDATE_QUEUE = 'order_status_update_queue';
 
 export const startWarehouseWorker = async () => {
     try {
@@ -66,6 +67,13 @@ export const startWarehouseWorker = async () => {
 
                         await requestRepository.save(newRequest);
                         console.log(`[db] Saved ingredient request for batch ${batchId} with status PENDING_PURCHASE.`);
+
+                        const statusUpdateMessage = {
+                            batchId,
+                            status: 'PURCHASING_INGREDIENTS',
+                            statusDetail: `Purchase required for ${ingredientsToPurchase.length} ingredient(s).`
+                        };
+                        await sendToQueue(ORDER_STATUS_UPDATE_QUEUE, statusUpdateMessage);
 
                         // 2. Publicar el mensaje a mercado
                         await sendToQueue(MARKETPLACE_PURCHASE_QUEUE, { batchId, ingredients: ingredientsToPurchase });

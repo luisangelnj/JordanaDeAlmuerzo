@@ -9,6 +9,7 @@ const useOrder = () => {
         color: '#007BFF'
     });
     const toast = useToast({
+        position: "bottom-right",
         timeout: 3000
     });
 
