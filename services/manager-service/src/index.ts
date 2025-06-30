@@ -2,14 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 // Importar nuestras rutas
-import orderRoutes from './routes/order.routes';
+import routes from './routes/routes';
 
 import { startStatusConsumer } from './services/status.consumer';
 import { startInventoryConsumer } from './services/inventory.consumer'
 import { startRecipeConsumer } from './services/recipe.consumer';
 import { startPurchaseHistoryConsumer } from './services/purchase-history.consumer';
 
-export let cachedRecipes = []; // <--- Variable para guardar las recetas en memoria
+export let cachedRecipes = [];
 
 // Cargar variables de entorno
 dotenv.config();
@@ -18,7 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const corsOptions = {
-  origin: 'http://localhost:5173', // <-- La URL de tu frontend
+  origin: 'http://localhost:5173',
   optionsSuccessStatus: 200 
 };
 
@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
   res.status(200).send('Manager service is running');
 });
 // Rutas API
-app.use('/api', orderRoutes);
+app.use('/api', routes);
 
 // Iniciar servidor
 app.listen(PORT, async () => {

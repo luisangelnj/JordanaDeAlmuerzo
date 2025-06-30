@@ -50,7 +50,6 @@ const createOrder: RequestHandler = async (req, res) => {
     } catch (error) {
         console.error("Error publishing order batch to queue:", error);
         
-        
         res.status(500).json({
             success: false,
             message: "Failed to process the order batch.",
@@ -60,31 +59,35 @@ const createOrder: RequestHandler = async (req, res) => {
 
 const getAllOrders: RequestHandler = async (req, res) => {
     try {
-        // Leemos el límite del query string, con un default de 5 y un máximo de 20.
-        const limit = Math.min(parseInt(req.query.limit as string) || 5, 20);
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 15;
+        const skip = (page - 1) * limit;
 
+        
         if (!AppDataSource.isInitialized) {
             await AppDataSource.initialize();
         }
+        
+        const orderRepo = AppDataSource.getRepository(OrderBatch);
 
-        const orderRepository = AppDataSource.getRepository(OrderBatch);
-
-        // Buscamos en la base de datos
-        const orders = await orderRepository.find({
-            order: {
-                createdAt: 'DESC',
-            },
+        const [result, total] = await orderRepo.findAndCount({
+            order: { createdAt: "DESC" },
             take: limit,
+            skip: skip,
         });
 
         res.status(200).json({
-            success: true,
-            message: `Success retrieving the data`,
-            data: orders
+            data: result,
+            total,
+            page,
+            lastPage: Math.ceil(total / limit),
         });
-
     } catch (error) {
-        
+        res.status(500).json({
+            success: false,
+            message: `Something went wrong`,
+            error: error
+        });
     }
 }
 
