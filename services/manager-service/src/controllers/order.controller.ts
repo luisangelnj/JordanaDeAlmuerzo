@@ -3,17 +3,18 @@ import { sendToQueue } from "../services/rabbitmq.service";
 import { AppDataSource } from '../data-source';
 import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
 
+const OUTGOING_QUEUE = 'order_requests_queue';
 
 const createOrder: RequestHandler = async (req, res) => {
     const { quantity } = req.body;
 
     if (!quantity || typeof quantity !== 'number' || quantity <= 0) {
-        // 3. NO uses "return" aquí. La función ya envía la respuesta.
+        
         res.status(400).json({
             success: false,
             message: "A valid 'quantity' is required.",
         });
-        return; // Usa un return vacío para detener la ejecución
+        return;
     }
 
     try {
@@ -36,7 +37,7 @@ const createOrder: RequestHandler = async (req, res) => {
             requestedAt: new Date().toISOString(),
         };
 
-        await sendToQueue("order_requests_queue", message);
+        await sendToQueue(OUTGOING_QUEUE, message);
 
         res.status(202).json({
             success: true,
@@ -49,7 +50,7 @@ const createOrder: RequestHandler = async (req, res) => {
     } catch (error) {
         console.error("Error publishing order batch to queue:", error);
         
-        // 5. Y tampoco aquí.
+        
         res.status(500).json({
             success: false,
             message: "Failed to process the order batch.",
@@ -71,9 +72,9 @@ const getAllOrders: RequestHandler = async (req, res) => {
         // Buscamos en la base de datos
         const orders = await orderRepository.find({
             order: {
-                createdAt: 'DESC', // Ordenar por fecha de creación, las más nuevas primero
+                createdAt: 'DESC',
             },
-            take: limit, // Tomar solo la cantidad especificada por el límite
+            take: limit,
         });
 
         res.status(200).json({

@@ -14,7 +14,7 @@ const ORDER_STATUS_UPDATE_QUEUE = 'order_status_update_queue';
 
 export const startWarehouseWorker = async () => {
     try {
-        // 1. Conectarse a la Base de Datos al iniciar
+        
         if (!AppDataSource.isInitialized) {
             await AppDataSource.initialize();
             console.log('[v] Warehouse connected to the database.');

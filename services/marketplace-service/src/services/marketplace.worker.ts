@@ -97,7 +97,7 @@ export const startMarketplaceWorker = async () => {
                     // Esperamos a que todos los workers terminen (lo que ocurrirá cuando la lista de tareas se vacíe)
                     await Promise.all(workerPromises);
 
-                     const successfulPurchases = purchaseResults; // Ya no necesitamos filtrar nulos si los manejamos dentro
+                    const successfulPurchases = purchaseResults; // Ya no necesitamos filtrar nulos si los manejamos dentro
 
                     if (successfulPurchases.length > 0) {
                         const confirmationMessage = { batchId, purchasedIngredients: successfulPurchases };

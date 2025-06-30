@@ -25,8 +25,6 @@ export const publishRecipeList = async () => {
         await connection.close();
 
     } catch (error) {
-        // En caso de error, lo mostramos en consola pero no detenemos el resto del servicio.
-        // El manager simplemente no tendrá la lista de recetas hasta que este servicio se reinicie.
         console.error('Could not publish initial recipe list:', error);
     }
 };

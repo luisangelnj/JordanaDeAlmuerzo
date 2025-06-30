@@ -37,6 +37,7 @@ const dashboardStatus: RequestHandler = async (req, res) => {
             `),
             // Consulta 3: Obtener todo el inventario cacheado
             inventoryRepository.find({ order: { ingredientName: 'ASC' } }),
+            // Consulta 4: Historial de últimas compras
             purchaseRepo.find({ order: { purchasedAt: 'DESC' }, take: 50 })
         ]);
 

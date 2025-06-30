@@ -6,7 +6,7 @@ import { sendToQueue } from './rabbitmq.service';
 const INCOMING_QUEUE = 'ingredient_ready_queue';
 const ORDER_STATUS_UPDATE_QUEUE = 'order_status_update_queue';
 
-// Tiempo simulado de cocción de órden (Para hacer debugg más fácilmente en consola)
+// Tiempo simulado de cocción de órden (Simular tiempo de cocción en dashboard)
 const COOKING_TIME_MS = 6000; // 6 segundos
 
 export const startIngredientConfirmationConsumer = async () => {
@@ -37,8 +37,8 @@ export const startIngredientConfirmationConsumer = async () => {
 
                     // 1. Actualizar el estado de todos los platos de este lote a 'PREPARING'
                     await dishRepo.update(
-                        { batchId }, // Condición: todos los platos con este batchId
-                        { status: DishStatus.PREPARING } // Nuevo estado
+                        { batchId },
+                        { status: DishStatus.PREPARING }
                     );
                     console.log(`[db] Dishes for batch ${batchId} are now PREPARING.`);
 
