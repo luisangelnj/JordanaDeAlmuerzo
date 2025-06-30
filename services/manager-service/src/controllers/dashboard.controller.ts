@@ -21,7 +21,7 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                     SUM(quantity) FILTER (WHERE status = 'COMPLETED') AS "totalCompletedQuantity"
                 FROM order_batches`
             ),
-            // Consulta 2: Obtener las últimas 10 órdenes
+            // Consulta 2: Obtener las últimas 50 órdenes
             orderRepository.query(`
                 SELECT * FROM order_batches
                 ORDER BY 
@@ -33,11 +33,11 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                     ELSE 5
                     END,
                     "updatedAt" DESC
-                LIMIT 15
+                LIMIT 50
             `),
             // Consulta 3: Obtener todo el inventario cacheado
             inventoryRepository.find({ order: { ingredientName: 'ASC' } }),
-            purchaseRepo.find({ order: { purchasedAt: 'DESC' }, take: 15 })
+            purchaseRepo.find({ order: { purchasedAt: 'DESC' }, take: 50 })
         ]);
 
         const responseData = {

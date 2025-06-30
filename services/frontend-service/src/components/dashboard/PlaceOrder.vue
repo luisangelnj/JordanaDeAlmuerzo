@@ -6,6 +6,7 @@
             <div>
                 <h3 class="text-lg uppercase font-semibold text-gray-800 dark:text-white/90">Nueva órden</h3>
             </div>
+            <small v-if="errors.quantity" class="text-error-500">{{ errors.quantity }}</small>
         </div>
         
         <div class="max-w-full overflow-x-auto text-center flex">
@@ -52,6 +53,10 @@ import useOrder from '@/ui/composables/useOrder';
 
 defineProps({
     orderStats: {
+        type: Object,
+        default: () => {}
+    },
+    errors: {
         type: Object,
         default: () => {}
     }

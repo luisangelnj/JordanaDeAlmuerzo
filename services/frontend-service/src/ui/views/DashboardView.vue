@@ -3,7 +3,7 @@
     <div class="grid sm:grid-cols-1 xl:grid-cols-12 gap-4 md:gap-2 lg:max-h-[90vh]">
 
       <div class="col-span-1 xl:col-span-7 max-h-[50vh]">
-        <place-order :orderStats="statsModel.orderStats" />
+        <place-order :orderStats="statsModel.orderStats" :errors="errors" />
       </div>
 
       <div class="col-span-1 xl:col-span-5 min-h-[45vh] max-h-[45vh] overflow-auto custom-scrollbar">
@@ -51,6 +51,7 @@ const toast = useToast({
 
 const {
   statsModel,
+  errors,
   getDashboardStats
 } = useDashboard()
 
