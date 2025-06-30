@@ -1,2 +1,13 @@
 # Dependencias
 node_modules/
+
+# IDE
+.vscode/
+
+# Variables de entorno
+.env
+.env.local
+.end.development
+.env.development.local
+.env.test.local
+.env.production.local

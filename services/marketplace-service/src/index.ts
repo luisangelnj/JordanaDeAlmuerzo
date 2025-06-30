@@ -1,11 +1,15 @@
-import http from 'http'
+import express from 'express';
+import { startMarketplaceWorker } from './services/marketplace.worker';
 
-const PORT = 3004
-const server = http.createServer((req, res) => {
-  res.writeHead(200)
-  res.end('Marketplace service running!')
-})
+const app = express();
+const PORT = process.env.PORT || 3004;
 
-server.listen(PORT, () => {
-  console.log(`Marketplace service on port ${PORT}`)
-})
+app.use(express.json());
+
+app.listen(PORT, () => {
+    console.log(`Marketplace service API listening on port ${PORT}`);
+    
+    // De forma concurrente, inicia el worker para que escuche la cola de RabbitMQ
+    console.log('Starting marketplace worker...');
+    startMarketplaceWorker();
+});

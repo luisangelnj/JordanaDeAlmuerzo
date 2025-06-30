@@ -2,24 +2,34 @@
   "name": "warehouse-service",
   "version": "1.0.0",
   "description": "Servicio de Almacén",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "dev": "nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run migration:run && npm run dev",
+    "dev": "nodemon",    
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource src/data-source.ts",
+    "migration:generate": "npm run typeorm -- migration:generate",
+    "migration:run": "npm run typeorm -- migration:run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.3",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "amqplib": "^0.10.8",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "dotenv": "^16.3.1",
+    "express": "^5.1.0",
+    "pg": "^8.16.2",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.25"
   }
 }

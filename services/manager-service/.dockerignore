@@ -1,0 +1,13 @@
+# Ignorar dependencias locales, ya que se instalan dentro de Docker
+node_modules
+
+# Ignorar el código compilado localmente
+dist
+
+# Ignorar logs y archivos del sistema
+npm-debug.log
+.DS_Store
+.env
+
+# Ignorar la carpeta de control de versiones
+.git

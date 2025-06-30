@@ -1,11 +1,54 @@
-import http from "http";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+// Importar nuestras rutas
+import routes from './routes/routes';
 
-const PORT = 3001
-const server = http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end("Manager service running!");
+import corsOptions from './config/cors';
+
+import { startStatusConsumer } from './services/status.consumer';
+import { startInventoryConsumer } from './services/inventory.consumer'
+import { startRecipeConsumer } from './services/recipe.consumer';
+import { startPurchaseHistoryConsumer } from './services/purchase-history.consumer';
+
+// Cargar variables de entorno
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',').map(origin => origin.trim()) || [];
+
+
+// --- Middlewares ---
+app.use(cors(corsOptions));
+app.use(express.json()); // Para parsear JSON
+app.use(express.urlencoded({ extended: true }));
+
+// --- Rutas ---
+// Ruta de salud para verificar que el servicio está vivo
+app.get('/', (req, res) => {
+  res.status(200).send('Manager service is running');
 });
+// Rutas API
+app.use('/api', routes);
 
-server.listen(PORT, () => {
+// Iniciar servidor
+app.listen(PORT, async () => {
   console.log(`Manager service running on port ${PORT}`);
+
+  //Iniciamos el worker para que escuche la cola de RabbitMQ
+  console.log('Starting Manager workers...');
+  try {
+    await Promise.all([
+      startStatusConsumer(),
+      startInventoryConsumer(),
+      startRecipeConsumer(),
+      startPurchaseHistoryConsumer()
+    ])
+      console.log('[+] All manager workers started successfully.');
+  } catch (error) {
+      console.error('Failed to start the Order Completion consumer:', error);
+      process.exit(1);
+  }
+
 });
