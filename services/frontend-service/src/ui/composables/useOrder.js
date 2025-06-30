@@ -16,6 +16,7 @@ const useOrder = () => {
     const totalPages = ref()
     const totalRecords = ref()
     const perPage = ref(15)
+    const placingOrder = ref(false)
 
     const orderList = ref([])
     const orderModel = ref({
@@ -44,7 +45,8 @@ const useOrder = () => {
     }
 
     const createOrder = async () => {
-        const loader = $loading.show();
+        placingOrder.value = true
+        // const loader = $loading.show();
         try {
             if (!validateCreateForm()) {
                 toast.info('Revisa los campos para continuar')
@@ -52,7 +54,6 @@ const useOrder = () => {
             }
             
             const resp = await Order.createOrder(orderModel.value)
-            console.log(resp);
             
             if (resp.success == false) throw resp;
             orderModel.value = resp
@@ -66,7 +67,8 @@ const useOrder = () => {
             }
             throw new Error('Error al registrar la órden: ' + error);
         } finally {
-            loader.hide()
+            placingOrder.value = false
+            // loader.hide()
         }
     }
 
@@ -98,6 +100,7 @@ const useOrder = () => {
         totalPages,
         totalRecords,
         page,
+        placingOrder,
 
         createOrder,
         getAllOrders

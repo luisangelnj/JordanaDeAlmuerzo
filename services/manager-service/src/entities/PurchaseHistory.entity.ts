@@ -5,6 +5,9 @@ export class PurchaseHistory {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
+    @Column({ type: 'int', generated: 'increment', unique: true })
+    folio!: number;
+
     @Column()
     ingredientName!: string;
 
