@@ -33,6 +33,11 @@
           </tr>
         </thead>
         <tbody>
+          <tr v-if="recentPurchases.length == 0">
+              <td colspan="3" class="py-3 whitespace-nowrap align-top text-sm text-center dark:text-gray-400">
+                  <p>No hay compras registradas</p>
+              </td>
+          </tr>
           <tr
             v-for="(product, index) in recentPurchases"
             :key="index"

@@ -37,7 +37,7 @@ export default {
             const response = await axios.get('/orders', {
                 params: {
                     page: page,       // Número de página
-                    per_page: perPage, // Elementos por página
+                    perPage: perPage, // Elementos por página
                 }
             });
 

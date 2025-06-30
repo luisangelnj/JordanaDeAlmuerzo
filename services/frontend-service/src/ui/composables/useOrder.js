@@ -15,7 +15,7 @@ const useOrder = () => {
     const page = ref(1);
     const totalPages = ref()
     const totalRecords = ref()
-    const perPage = ref(15)
+    const perPage = ref(50)
     const placingOrder = ref(false)
 
     const orderList = ref([])
@@ -100,6 +100,7 @@ const useOrder = () => {
         totalPages,
         totalRecords,
         page,
+        perPage,
         placingOrder,
 
         createOrder,

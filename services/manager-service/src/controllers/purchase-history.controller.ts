@@ -6,7 +6,7 @@ import { PurchaseHistory } from '../entities/PurchaseHistory.entity';
 const getAllPurchaseHistory: RequestHandler = async (req, res) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 30;
+        const limit = parseInt(req.query.perPage as string) || 30;
         const skip = (page - 1) * limit;
 
         const purchaseRepo = AppDataSource.getRepository(PurchaseHistory);

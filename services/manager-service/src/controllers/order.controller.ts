@@ -60,7 +60,7 @@ const createOrder: RequestHandler = async (req, res) => {
 const getAllOrders: RequestHandler = async (req, res) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 15;
+        const limit = parseInt(req.query.perPage as string) || 15;
         const skip = (page - 1) * limit;
 
         
@@ -70,11 +70,21 @@ const getAllOrders: RequestHandler = async (req, res) => {
         
         const orderRepo = AppDataSource.getRepository(OrderBatch);
 
-        const [result, total] = await orderRepo.findAndCount({
-            order: { createdAt: "DESC" },
-            take: limit,
-            skip: skip,
-        });
+        const [result, total] = await orderRepo
+        .createQueryBuilder('order')
+        .orderBy(`
+            CASE 
+            WHEN order.status = 'PENDING' THEN 1
+            WHEN order.status = 'PREPARING_DISHES' THEN 2
+            WHEN order.status = 'PURCHASING_INGREDIENTS' THEN 3
+            WHEN order.status = 'COMPLETED' THEN 4
+            ELSE 5
+            END
+        `)
+        .addOrderBy('order.createdAt', 'DESC')
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
         res.status(200).json({
             data: result,

@@ -33,13 +33,19 @@
           </tr>
         </thead>
         <tbody>
+          <tr v-if="recentOrders.length == 0">
+              <td colspan="3" class="py-3 whitespace-nowrap align-top text-center text-sm dark:text-gray-400">
+                  <p>No hay órdenes registradas</p>
+              </td>
+          </tr>
           <tr
+            v-else
             v-for="(product, index) in recentOrders"
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
             <td class="py-3 whitespace-nowrap w-1/3">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.orderNo }}</p>
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400"># {{ product.orderNo }}</p>
             </td>
             <td class="py-3 whitespace-nowrap w-1/3">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.quantity }}</p>

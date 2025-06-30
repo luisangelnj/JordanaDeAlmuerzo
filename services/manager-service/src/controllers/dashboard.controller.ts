@@ -2,17 +2,18 @@ import { RequestHandler } from "express";
 import { AppDataSource } from '../data-source';
 import { OrderBatch, OrderStatus } from '../entities/OrderBatch.entity';
 import { CachedInventory } from "../entities/CachedInventory.entity";
-import { cachedRecipes } from '../index';
 import { PurchaseHistory } from '../entities/PurchaseHistory.entity';
+import { CachedRecipe } from '../entities/CachedRecipe.entity';
 
 const dashboardStatus: RequestHandler = async (req, res) => {
     try {
         const orderRepository = AppDataSource.getRepository(OrderBatch);
         const inventoryRepository = AppDataSource.getRepository(CachedInventory);
         const purchaseRepo = AppDataSource.getRepository(PurchaseHistory);
+        const recipeRepo = AppDataSource.getRepository(CachedRecipe);
 
         // Ejecutamos todas las consultas en paralelo para máxima eficiencia
-        const [orderStats, recentOrders, inventory, recentPurchases] = await Promise.all([
+        const [orderStats, recentOrders, inventory, recentPurchases, recipes] = await Promise.all([
             // Consulta 1: Obtener contadores de órdenes
             orderRepository.query(
                 `SELECT 
@@ -32,13 +33,15 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                     WHEN status = 'COMPLETED' THEN 4
                     ELSE 5
                     END,
-                    "updatedAt" DESC
+                    "createdAt" DESC
                 LIMIT 50
             `),
             // Consulta 3: Obtener todo el inventario cacheado
             inventoryRepository.find({ order: { ingredientName: 'ASC' } }),
             // Consulta 4: Historial de últimas compras
-            purchaseRepo.find({ order: { purchasedAt: 'DESC' }, take: 50 })
+            purchaseRepo.find({ order: { purchasedAt: 'DESC' }, take: 50 }),
+            // Consulta 5: Obtenemos las recetas cacheadas
+            recipeRepo.find({ order: { name: 'ASC' } })
         ]);
 
         const responseData = {
@@ -49,7 +52,7 @@ const dashboardStatus: RequestHandler = async (req, res) => {
             },
             recentOrders,
             inventory,
-            recipes: cachedRecipes,
+            recipes,
             recentPurchases
         };
 

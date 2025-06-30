@@ -12,7 +12,7 @@
                             -
                         </h3>
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            {{ totalRecords }}
+                            {{ totalRecords }} órdenes registradas
                         </h3>
                     </div>
 
@@ -26,7 +26,7 @@
                                 &lt;
                             </button>
                             <span class="text-sm text-gray-400">
-                                {{ page }} de {{ totalPages }}
+                                {{ (page - 1) * perPage + 1 }} - {{ (page - 1) * perPage + orderList.length }} de {{ totalRecords }}
                             </span>
                             <button
                                 @click="handleNextPage"
@@ -59,14 +59,14 @@
                                         Cantidad de platos
                                     </p>
                                 </th>
-                                <th class="py-3 text-left w-4/12">
+                                <th class="py-3 text-left w-3/12">
                                     <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
                                         Lista de platillos
                                     </p>
                                 </th>
-                                <th class="py-3 text-left w-2/12">
+                                <th class="py-3 text-left w-3/12">
                                     <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                                        Fecha
+                                        Fecha de pedido
                                     </p>
                                 </th>
                                 <th class="py-3 text-left w-2/12">
@@ -171,6 +171,7 @@ const $loading = useLoading({
 
 const {
     page,
+    perPage,
     totalPages,
     totalRecords,
     orderList,
@@ -180,11 +181,15 @@ const {
 const handleNextPage = async () => {
     page.value++;
     await getAllOrders(true);
+    console.log(orderList.value);
+    
 }
 
 const handlePreviousPage = async () => {
     page.value--;
     await getAllOrders(true);
+    console.log(orderList.value);
+    
 }
 
 const toggleExpanded = (id) => {
@@ -227,6 +232,8 @@ onMounted(async () => {
     const loader = $loading.show()
     try {
         await getAllOrders();
+        console.log(orderList.value);
+        
 
         startPolling()
         

@@ -12,7 +12,7 @@
                             -
                         </h3>
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            {{ totalRecords }}
+                            {{ totalRecords }} realizadas
                         </h3>
                     </div>
 
@@ -26,7 +26,7 @@
                                 &lt;
                             </button>
                             <span class="text-sm text-gray-400">
-                                {{ page }} de {{ totalPages }}
+                                {{ (page - 1) * perPage + 1 }} - {{ (page - 1) * perPage + purchaseList.length }} de {{ totalRecords }}
                             </span>
                             <button
                                 @click="handleNextPage"
@@ -54,12 +54,12 @@
                                         Número de Folio
                                     </p>
                                 </th>
-                                <th class="py-3 text-left w-2/12">
+                                <th class="py-3 text-left w-3/12">
                                     <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
                                         Fecha de compra
                                     </p>
                                 </th>
-                                <th class="py-3 text-left w-3/12">
+                                <th class="py-3 text-left w-2/12">
                                     <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
                                         Ingrediente
                                     </p>
@@ -79,7 +79,7 @@
                         <tbody>
                             <tr v-if="purchaseList.length == 0">
                                 <td colspan="5" class="py-3 whitespace-nowrap align-top text-center dark:text-gray-400">
-                                    <p>No hay órdenes registradas</p>
+                                    <p>No hay compras registradas.</p>
                                 </td>
                             </tr>
                             <tr v-else v-for="(product, index) in purchaseList" :key="index"
@@ -135,6 +135,7 @@ const toast = useToast({
 
 const {
     page,
+    perPage,
     totalPages,
     totalRecords,
     purchaseList,

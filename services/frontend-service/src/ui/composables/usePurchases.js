@@ -15,7 +15,7 @@ const usePurchase = () => {
     const page = ref(1);
     const totalPages = ref()
     const totalRecords = ref()
-    const perPage = ref(30)
+    const perPage = ref(100)
 
     const purchaseList = ref([])
     const purchaseModel = ref({
@@ -54,6 +54,7 @@ const usePurchase = () => {
         totalPages,
         totalRecords,
         page,
+        perPage,
 
         getAllPurchases
     }

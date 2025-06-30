@@ -4,23 +4,20 @@ import dotenv from 'dotenv';
 // Importar nuestras rutas
 import routes from './routes/routes';
 
+import corsOptions from './config/cors';
+
 import { startStatusConsumer } from './services/status.consumer';
 import { startInventoryConsumer } from './services/inventory.consumer'
 import { startRecipeConsumer } from './services/recipe.consumer';
 import { startPurchaseHistoryConsumer } from './services/purchase-history.consumer';
-
-export let cachedRecipes = [];
 
 // Cargar variables de entorno
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',').map(origin => origin.trim()) || [];
 
-const corsOptions = {
-  origin: 'http://localhost:5173',
-  optionsSuccessStatus: 200 
-};
 
 // --- Middlewares ---
 app.use(cors(corsOptions));
