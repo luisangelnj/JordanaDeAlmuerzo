@@ -15,7 +15,7 @@ interface IngredientToPurchase {
     quantity: number;
 }
 
-async function purchaseIngredient(
+export async function purchaseIngredient(
     ingredient: IngredientToPurchase,
 ): Promise<{ name: string; quantityBought: number } | null> {
     try {
