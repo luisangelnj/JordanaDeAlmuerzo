@@ -27,8 +27,8 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                 ORDER BY 
                     CASE 
                     WHEN status = 'PENDING' THEN 1
-                    WHEN status = 'PURCHASING_INGREDIENTS' THEN 2
-                    WHEN status = 'PREPARING_DISHES' THEN 3
+                    WHEN status = 'PREPARING_DISHES' THEN 2
+                    WHEN status = 'PURCHASING_INGREDIENTS' THEN 3
                     WHEN status = 'COMPLETED' THEN 4
                     ELSE 5
                     END,

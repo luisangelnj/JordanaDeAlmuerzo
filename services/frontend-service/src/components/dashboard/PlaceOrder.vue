@@ -19,7 +19,7 @@
             <input
                 v-model="orderModel.quantity"
                 type="number"
-                max="500"
+                max="999"
                 min="1"
                 value="1"
                 class="dark:bg-dark-900 text-center rounded-lg border border-gray-300 bg-transparent w-2/12 py-1 text-5xl text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
