@@ -7,7 +7,7 @@ import * as migrations from './migrations';
 export const AppDataSource = new DataSource({
     type: 'postgres',
 
-    url: process.env.DATABASE_URL,
+    url: process.env.KITCHEN_DATABASE_URL,
 
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
