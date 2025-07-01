@@ -122,10 +122,11 @@ npm test
 
 * **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
 * **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
-* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`) están **diseñados para ser escalados horizontalmente**, permitiendo procesar múltiples flujos en paralelo. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
+* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`)  están **diseñados para ser escalables horizontalmente**, permitiendo múltiples instancias en paralelo para mejorar el rendimiento y la capacidad de procesamiento, especialmente en escenarios de alta concurrencia. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
 * **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
 * **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
 
 ## Futuras Mejoras
 * **Seguridad:** Implementar un sistema de autenticación y autorización con JWT para proteger el acceso al dashboard.
 * **WebSockets:** Reemplazar el polling del frontend con una conexión WebSocket para actualizaciones del dashboard en tiempo real de forma más eficiente.
+- **Inventario inteligente con IA:** Implementar un sistema de predicción que analice el historial de órdenes y movimientos para anticipar la demanda de ingredientes. Esto permitirá al `warehouse-service` hacer compras anticipadas de forma automática, reduciendo tiempos de espera y mejorando la eficiencia general del flujo.
