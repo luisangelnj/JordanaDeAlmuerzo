@@ -1,0 +1,76 @@
+# Reto Técnico: Jornada de Almuerzo gratis
+
+Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios robusta y escalable.
+
+**URL de la aplicación desplegada:** 
+`https://jornada-de-almuerzo-front-end.vercel.app/` 
+o 
+`https://jornada-de-almuerzo.luisangelnj.com/` (Dominio propagandose)
+**URL de la API principal:** `https://manager-service-zxkk.onrender.com/api/dashboard`
+
+## Descripción del Proyecto
+
+El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es gestionar una alta concurrencia de pedidos de platos, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
+
+## Arquitectura del Sistema
+
+El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
+
+![Diagrama de Arquitectura](https://imgur.com/a/LKBkUuG)
+
+
+### Microservicios:
+* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
+* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
+* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
+* **Frontend (Vercel)**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
+* **3 Bases de Datos (PostgreSQL)**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total.
+    - Manager-DB
+    - Kitchen-DB
+    - Warehouse-DB
+* **Mensajería (CloudAMQP)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
+
+## Stack Tecnológico
+* **Backend:** Node.js, TypeScript
+* **Frontend:** Vue.js, Vite, Axios
+* **Bases de Datos:** PostgreSQL
+* **Mensajería:** RabbitMQ (gestionado en CloudAMQP)
+* **Contenedores:** Docker & Docker Compose
+* **Despliegue:** Render (para el backend) y Vercel (para el frontend)
+* **Testing:** Jest, ts-jest
+
+## Cómo Ejecutar en Desarrollo Local
+
+1.  Clonar el repositorio
+2.  Navegar a la raíz del proyecto.
+3.  Crear los archivos `.env` necesarios en cada servicio para las variables de entorno locales (principalmente para las migraciones).
+4.  Levantar todo el entorno con Docker Compose: `docker-compose up --build`
+5.  Acceder al frontend en `http://localhost:5173`.
+
+## Pruebas (Testing)
+
+El proyecto incluye pruebas unitarias para validar la lógica de negocio crítica.  Para ejecutar las pruebas de un servicio:
+```bash
+# Navegar a la carpeta del servicio, ej:
+cd services/kitchen-service
+cd services/marketplace-service
+
+# Instalar dependencias
+npm install
+
+# Correr las pruebas
+npm test
+```
+
+## Decisiones de Arquitectura y Trade-offs
+
+* **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
+* **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
+* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`) están diseñados para ser escalados horizontalmente, permitiendo procesar múltiples flujos en paralelo. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
+* **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
+* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
+
+## Futuras Mejoras
+* **Seguridad:** Implementar un sistema de autenticación y autorización con JWT para proteger el acceso al dashboard.
+* **WebSockets:** Reemplazar el polling del frontend con una conexión WebSocket para actualizaciones del dashboard en tiempo real de forma más eficiente.
