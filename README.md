@@ -16,7 +16,8 @@ El sistema automatiza el flujo de un restaurante durante una jornada de donació
 
 El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
 
-![Diagrama de Arquitectura](https://imgur.com/a/LKBkUuG)
+![Diagrama de arquitectura](https://i.postimg.cc/Y9RPZbT1/Diagrama-sin-t-tulo-drawio.png)
+
 ## Flujo Detallado de una Orden
 
 El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización.
