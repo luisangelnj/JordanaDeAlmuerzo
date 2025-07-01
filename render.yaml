@@ -1,3 +1,8 @@
+databases:
+  - name: manager-db
+    plan: free
+    postgresMajorVersion: "14"
+
 services:
   # --- API del Manager ---
   - name: manager-service
