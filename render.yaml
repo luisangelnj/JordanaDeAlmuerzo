@@ -10,7 +10,7 @@ services:
     plan: free
     runtime: docker
     dockerContext: ./services/manager-service
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
