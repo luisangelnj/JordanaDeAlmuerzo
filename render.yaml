@@ -29,7 +29,7 @@ services:
   
   - name: kitchen-service
     type: worker
-    plan: free
+    plan: standard
     runtime: docker
     dockerContext: ./services/kitchen-service
     dockerfilePath: ./services/kitchen-service/Dockerfile
