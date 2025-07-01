@@ -1,0 +1,70 @@
+services:
+  frontend:
+    build:
+      context: ./services/frontend-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./services/frontend-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  manager:
+    build:
+      context: ./services/manager-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=manager-db
+      - DB_PORT=5432
+      - DB_USERNAME=manager_user
+      - DB_PASSWORD=manager_password
+      - DB_DATABASE=manager_db
+    volumes:
+      - ./services/manager-service/src:/app/src
+      - /app/node_modules
+    command: npm run dev
+
+  kitchen:
+    build:
+      context: ./services/kitchen-service
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=kitchen-db
+      - DB_PORT=5432
+      - DB_USERNAME=kitchen_user
+      - DB_PASSWORD=kitchen_password
+      - DB_DATABASE=kitchen_db
+    volumes:
+      - ./services/kitchen-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  warehouse:
+    build:
+      context: ./services/warehouse-service
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=warehouse-db
+      - DB_PORT=5432
+      - DB_USERNAME=warehouse_user
+      - DB_PASSWORD=warehouse_password
+      - DB_DATABASE=warehouse_db
+    volumes:
+      - ./services/warehouse-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  marketplace:
+    build:
+      context: ./services/marketplace-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/marketplace-service:/app
+      - /app/node_modules
+    command: npm run dev
