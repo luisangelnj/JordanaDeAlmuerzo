@@ -6,17 +6,66 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
 `https://jornada-de-almuerzo-front-end.vercel.app/` 
 o 
 `https://jornada-de-almuerzo.luisangelnj.com/` (Dominio propagandose)
-**URL de la API principal:** `https://manager-service-zxkk.onrender.com/api/dashboard`
 
 ## Descripción del Proyecto
 
 El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es gestionar una alta concurrencia de pedidos de platos, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
+
+### Instrucciones de Arranque
+
+1.  **Clona el repositorio:**
+    ```bash
+    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
+    ```
+
+2.  **Navega a la raíz del proyecto:**
+    ```bash
+    cd JordanaDeAlmuerzo
+    ```
+
+3.  **Levanta todo el entorno:**
+    ```bash
+    docker-compose up --build
+    ```
+    ¡Y listo! Este único comando se encargará de todo:
+    * **Construirá** las imágenes de Docker para cada microservicio.
+    * **Iniciará** todos los contenedores en el orden correcto.
+    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar.
+    * Los servicios se iniciarán en modo de desarrollo con **"hot-reloading"**, por lo que cualquier cambio que hagas en el código se reflejará al instante.
+
+### Acceder a los Servicios
+Una vez que todos los contenedores estén corriendo, podrás acceder a:
+* **Frontend de la Aplicación:** `http://localhost:5173`
+* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
+
+### Escalado de Servicios (Opcional)
+Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
+
+Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
+```bash
+# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
+docker-compose up --build --scale kitchen-service=2 --scale warehouse-service=2
+```
 
 ## Arquitectura del Sistema
 
 El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
 
 ![Diagrama de arquitectura](https://i.postimg.cc/Y9RPZbT1/Diagrama-sin-t-tulo-drawio.png)
+
+
+### Microservicios:
+* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
+* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
+* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
+* **Frontend (Vercel)**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
+* **3 Bases de Datos (PostgreSQL)**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total.
+    - Manager-DB
+    - Kitchen-DB
+    - Warehouse-DB
+* **Mensajería (CloudAMQP)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
+
 
 ## Flujo Detallado de una Orden
 
@@ -74,17 +123,6 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
     * Una vez todos los platos están listos, el **Kitchen Service** publica un último evento con el estado `COMPLETED` y la lista de platos preparados.
     * El **Manager Service** consume este evento final y actualiza el estado de la `OrderBatch` en su `manager-db` a `COMPLETED`, dejando toda la información lista para ser consultada por el frontend.
 
-### Microservicios:
-* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
-* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
-* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
-* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
-* **Frontend (Vercel)**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
-* **3 Bases de Datos (PostgreSQL)**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total.
-    - Manager-DB
-    - Kitchen-DB
-    - Warehouse-DB
-* **Mensajería (CloudAMQP)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
 
 ## Stack Tecnológico
 * **Backend:** Node.js, TypeScript
@@ -102,42 +140,6 @@ Este proyecto está 100% desarrollado con contenedores Docker para garantizar un
 ### Prerrequisitos
 * Tener instalado **Docker** y **Docker Compose**.
 * Tener instalado **Git**.
-
-### Instrucciones de Arranque
-
-1.  **Clona el repositorio:**
-    ```bash
-    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
-    ```
-
-2.  **Navega a la raíz del proyecto:**
-    ```bash
-    cd JordanaDeAlmuerzo
-    ```
-
-3.  **Levanta todo el entorno:**
-    ```bash
-    docker-compose up --build
-    ```
-    ¡Y listo! Este único comando se encargará de todo:
-    * **Construirá** las imágenes de Docker para cada microservicio.
-    * **Iniciará** todos los contenedores en el orden correcto.
-    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar.
-    * Los servicios se iniciarán en modo de desarrollo con **"hot-reloading"**, por lo que cualquier cambio que hagas en el código se reflejará al instante.
-
-### Acceder a los Servicios
-Una vez que todos los contenedores estén corriendo, podrás acceder a:
-* **Frontend de la Aplicación:** `http://localhost:5173`
-* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
-
-### Escalado de Servicios (Opcional)
-Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
-
-Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
-```bash
-# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
-docker-compose up --build --scale kitchen-service=2 --scale warehouse-service=2
-```
 
 ## Pruebas (Testing)
 
