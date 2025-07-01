@@ -9,7 +9,12 @@ o
 
 ## Descripción del Proyecto
 
-El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es gestionar una alta concurrencia de pedidos de platos, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
+El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es **gestionar una alta concurrencia de pedidos de platos**, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
+
+![Diagrama de arquitectura](https://i.postimg.cc/KjnFd81n/Screenshot-1.png)
+El dashboard proporciona una visualización centralizada y en tiempo real del estado completo del sistema. Permite al gerente monitorear las estadísticas clave de la jornada y seguir el progreso de cada orden individual a través de todo su ciclo de vida: desde PENDIENTE, pasando por COMPRANDO INGREDIENTES y PREPARANDO PLATILLOS, hasta su entrega final como COMPLETADA.
+
+El sistema está diseñado para soportar el envío de múltiples órdenes masivas de forma simultánea. Estas solicitudes son encoladas y procesadas eficientemente por los workers del backend. Para fines del reto, la interfaz limita cada orden a un máximo de 999 platillos, sin embargo, la arquitectura subyacente está diseñada para escalar de forma segura. Los servicios de "workers" (kitchen, warehouse y marketplace) pueden incrementar sus instancias para aumentar la capacidad de procesamiento y soportar una carga de trabajo aún mayor si fuera necesario, garantizando la agilidad del proceso.
 
 
 ## Cómo Ejecutar en Desarrollo Local
@@ -133,7 +138,7 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
 
 ## Stack Tecnológico
 * **Backend:** Node.js, TypeScript
-* **Frontend:** Vue.js, Vite, Axios
+* **Frontend:** Vue.js, Vite, Axios, TailwindCSS
 * **Bases de Datos:** PostgreSQL
 * **Mensajería:** RabbitMQ (gestionado en CloudAMQP)
 * **Contenedores:** Docker & Docker Compose
