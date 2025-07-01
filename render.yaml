@@ -31,7 +31,7 @@ services:
     dockerContext: ./services/kitchen-service
     dockerfilePath: ./services/kitchen-service/Dockerfile
     envVars:
-      - key: MANAGER_DATABASE_URL
+      - key: KITCHEN_DATABASE_URL
         fromDatabase:
           type: pserv
           name: kitchen-db
