@@ -10,6 +10,8 @@ services:
     volumes:
       - ./services/frontend-service:/app
       - /app/node_modules
+    environment:
+      VITE_VITE_BACKEND_API_URL: http://localhost:3001/api
     depends_on:
       manager:
         condition: service_started
@@ -52,7 +54,6 @@ services:
     build:
       context: ./services/manager-service
       dockerfile: Dockerfile.dev
-    # container_name: manager-service
     ports:
       - "3001:3001"
     environment:
@@ -75,16 +76,16 @@ services:
       - jornada-network
 
   kitchen-db:
-    image: postgres:14-alpine # Usamos una imagen oficial de PostgreSQL
+    image: postgres:14-alpine
     container_name: kitchen-db
     environment:
       POSTGRES_USER: kitchen_user
       POSTGRES_PASSWORD: kitchen_password
       POSTGRES_DB: kitchen_db
     ports:
-      - "5434:5432" # Expone el puerto para que puedas conectarte desde tu máquina si lo necesitas
+      - "5434:5432"
     volumes:
-      - kitchen-db-data:/var/lib/postgresql/data # Persiste los datos
+      - kitchen-db-data:/var/lib/postgresql/data
     networks:
       - jornada-network
 
@@ -92,11 +93,7 @@ services:
     build:
       context: ./services/kitchen-service
       dockerfile: Dockerfile.dev
-    # container_name: kitchen-service
-    # ports:
-    #   - "3002:3002"
     environment:
-      # - PORT= 3002
       - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
       - DB_HOST=kitchen-db
       - DB_PORT=5432
@@ -114,16 +111,16 @@ services:
       - jornada-network
 
   warehouse-db:
-    image: postgres:14-alpine # Usamos una imagen oficial de PostgreSQL
+    image: postgres:14-alpine
     container_name: warehouse-db
     environment:
       POSTGRES_USER: warehouse_user
       POSTGRES_PASSWORD: warehouse_password
       POSTGRES_DB: warehouse_db
     ports:
-      - "5433:5432" # Expone el puerto para que puedas conectarte desde tu máquina si lo necesitas
+      - "5433:5432"
     volumes:
-      - warehouse-db-data:/var/lib/postgresql/data # Persiste los datos
+      - warehouse-db-data:/var/lib/postgresql/data
     networks:
       - jornada-network
 
@@ -131,11 +128,7 @@ services:
     build:
       context: ./services/warehouse-service
       dockerfile: Dockerfile.dev
-    # container_name: warehouse-service
-    # ports:
-      # - "3003:3003"
     environment:
-      # - PORT= 3003
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - DB_HOST=warehouse-db
       - DB_PORT=5432
@@ -156,11 +149,7 @@ services:
     build:
       context: ./services/marketplace-service
       dockerfile: Dockerfile.dev
-    # container_name: marketplace-service
-    # ports:
-    #   - "3004:3004"
     environment:
-      # - PORT= 3004
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - ALEGRA_EXTERNAL_MARKETPLACE_API= https://recruitment.alegra.com/api/farmers-market/buy
     volumes:
