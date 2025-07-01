@@ -10,7 +10,7 @@ services:
   # --- API del Manager ---
   - name: manager-service
     type: web
-    plan: free
+    plan: starter
     runtime: docker
     dockerContext: ./services/manager-service
     dockerfilePath: ./services/manager-service/Dockerfile
@@ -26,7 +26,7 @@ services:
   
   - name: kitchen-service
     type: web
-    plan: free
+    plan: starter
     runtime: docker
     dockerContext: ./services/kitchen-service
     dockerfilePath: ./services/kitchen-service/Dockerfile
