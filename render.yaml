@@ -5,12 +5,15 @@ databases:
   - name: kitchen-db
     plan: basic-256mb
     postgresMajorVersion: "14"
+  - name: warehouse-db
+    plan: basic-256mb
+    postgresMajorVersion: "14"
 
 services:
   # --- API del Manager ---
   - name: manager-service
     type: web
-    plan: starter
+    plan: free
     runtime: docker
     dockerContext: ./services/manager-service
     dockerfilePath: ./services/manager-service/Dockerfile
@@ -26,7 +29,7 @@ services:
   
   - name: kitchen-service
     type: web
-    plan: starter
+    plan: free
     runtime: docker
     dockerContext: ./services/kitchen-service
     dockerfilePath: ./services/kitchen-service/Dockerfile
@@ -35,5 +38,19 @@ services:
         fromDatabase:
           type: pserv
           name: kitchen-db
+          property: connectionString
+      - fromGroup: jornada-secrets
+        
+  - name: warehouse-service
+    type: web
+    plan: starter
+    runtime: docker
+    dockerContext: ./services/warehouse-service
+    dockerfilePath: ./services/warehouse-service/Dockerfile
+    envVars:
+      - key: WAREHOUSE_DATABASE_URL
+        fromDatabase:
+          type: pserv
+          name: warehouse-db
           property: connectionString
       - fromGroup: jornada-secrets
