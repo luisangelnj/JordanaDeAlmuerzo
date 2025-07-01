@@ -11,6 +11,11 @@ o
 
 El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es gestionar una alta concurrencia de pedidos de platos, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
 
+
+## Cómo Ejecutar en Desarrollo Local
+
+Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, y el sistema de mensajería.
+
 ### Instrucciones de Arranque
 
 1.  **Clona el repositorio:**
@@ -27,10 +32,12 @@ El sistema automatiza el flujo de un restaurante durante una jornada de donació
     ```bash
     docker-compose up --build
     ```
+
+4.  **Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:**
     ¡Y listo! Este único comando se encargará de todo:
     * **Construirá** las imágenes de Docker para cada microservicio.
     * **Iniciará** todos los contenedores en el orden correcto.
-    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar.
+    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
     * Los servicios se iniciarán en modo de desarrollo con **"hot-reloading"**, por lo que cualquier cambio que hagas en el código se reflejará al instante.
 
 ### Acceder a los Servicios
@@ -133,9 +140,6 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
 * **Despliegue:** Render (para el backend) y Vercel (para el frontend)
 * **Testing:** Jest, ts-jest
 
-## Cómo Ejecutar en Desarrollo Local
-
-Este proyecto está 100% desarrollado con contenedores Docker para garantizar un entorno de desarrollo consistente y fácil de levantar. Con un solo comando, se iniciarán todos los microservicios, bases de datos, y el sistema de mensajería.
 
 ### Prerrequisitos
 * Tener instalado **Docker** y **Docker Compose**.
