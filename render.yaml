@@ -2,6 +2,9 @@ databases:
   - name: manager-db
     plan: free
     postgresMajorVersion: "14"
+  - name: kitchen-db
+    plan: free
+    postgresMajorVersion: "14"
 
 services:
   # --- API del Manager ---
@@ -12,13 +15,24 @@ services:
     dockerContext: ./services/manager-service
     dockerfilePath: ./services/manager-service/Dockerfile
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: CORS_ORIGINS
         sync: false
       - key: DATABASE_URL
         fromDatabase:
           name: manager-db
           property: connectionString
-      - key: RABBITMQ_URL
-        sync: false
+      - fromGroup: jornada-secrets
+  
+  - name: kitchen-service
+    type: web
+    plan: free
+    runtime: docker
+    dockerContext: ./services/kitchen-service
+    dockerfilePath: ./services/kitchen-service/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          type: pserv
+          name: kitchen-db
+          property: connectionString
+      - fromGroup: jornada-secrets

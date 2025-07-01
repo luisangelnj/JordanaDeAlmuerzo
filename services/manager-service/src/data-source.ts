@@ -1,9 +1,5 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { OrderBatch } from './entities/OrderBatch.entity';
-import { CachedInventory } from './entities/CachedInventory.entity';
-import { PurchaseHistory } from './entities/PurchaseHistory.entity';
-import { CachedRecipe } from './entities/CachedRecipe.entity';
 
 import * as entities from './entities';
 import * as migrations from './migrations';
