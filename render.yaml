@@ -1,12 +1,12 @@
 databases:
   - name: manager-db
-    plan: basic-256mb
+    plan: free
     postgresMajorVersion: "14"
   - name: kitchen-db
-    plan: basic-256mb
+    plan: free
     postgresMajorVersion: "14"
   - name: warehouse-db
-    plan: basic-256mb
+    plan: free
     postgresMajorVersion: "14"
 
 services:
