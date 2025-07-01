@@ -15,6 +15,10 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
 
+    extra: {
+        family: 4 // Forza el uso de IPv4
+    },
+
     ssl: process.env.NODE_ENV === 'production' 
     ? { rejectUnauthorized: false } 
     : false,
