@@ -97,12 +97,47 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
 
 ## Cómo Ejecutar en Desarrollo Local
 
-1.  Clonar el repositorio
-2.  Navegar a la raíz del proyecto.
-3.  Crear los archivos `.env` necesarios en cada servicio para las variables de entorno locales (principalmente para las migraciones).
-4.  Levantar todo el entorno con Docker Compose: `docker-compose up --build`
+Este proyecto está 100% desarrollado con contenedores Docker para garantizar un entorno de desarrollo consistente y fácil de levantar. Con un solo comando, se iniciarán todos los microservicios, bases de datos, y el sistema de mensajería.
 
-5.  Acceder al frontend en `http://localhost:5173`.
+### Prerrequisitos
+* Tener instalado **Docker** y **Docker Compose**.
+* Tener instalado **Git**.
+
+### Instrucciones de Arranque
+
+1.  **Clona el repositorio:**
+    ```bash
+    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
+    ```
+
+2.  **Navega a la raíz del proyecto:**
+    ```bash
+    cd JordanaDeAlmuerzo
+    ```
+
+3.  **Levanta todo el entorno:**
+    ```bash
+    docker-compose up --build
+    ```
+    ¡Y listo! Este único comando se encargará de todo:
+    * **Construirá** las imágenes de Docker para cada microservicio.
+    * **Iniciará** todos los contenedores en el orden correcto.
+    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar.
+    * Los servicios se iniciarán en modo de desarrollo con **"hot-reloading"**, por lo que cualquier cambio que hagas en el código se reflejará al instante.
+
+### Acceder a los Servicios
+Una vez que todos los contenedores estén corriendo, podrás acceder a:
+* **Frontend de la Aplicación:** `http://localhost:5173`
+* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
+
+### Escalado de Servicios (Opcional)
+Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
+
+Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
+```bash
+# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
+docker-compose up --build --scale kitchen-service=2 --scale warehouse-service=2
+```
 
 ## Pruebas (Testing)
 
