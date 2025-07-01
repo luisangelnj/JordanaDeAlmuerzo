@@ -54,3 +54,14 @@ services:
           name: warehouse-db
           property: connectionString
       - fromGroup: jornada-secrets
+        
+  - name: marketplace-service
+    type: web
+    plan: starter
+    runtime: docker
+    dockerContext: ./services/marketplace-service
+    dockerfilePath: ./services/marketplace-service/Dockerfile
+    envVars:
+      - key: ALEGRA_EXTERNAL_MARKETPLACE_API
+        sync: false
+      - fromGroup: jornada-secrets
