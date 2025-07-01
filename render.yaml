@@ -1,3 +1,11 @@
+databases:
+  - name: manager-db
+    plan: starter
+    postgresMajorVersion: "14"
+  - name: kitchen-db
+    plan: starter
+    postgresMajorVersion: "14"
+
 services:
   # --- API del Manager ---
   - name: manager-service
@@ -10,7 +18,10 @@ services:
       - key: CORS_ORIGINS
         sync: false
       - key: MANAGER_DATABASE_URL
-        sync: false
+        fromDatabase:
+          type: pserv
+          name: manager-db
+          property: connectionString
       - fromGroup: jornada-secrets
   
   - name: kitchen-service
@@ -20,6 +31,9 @@ services:
     dockerContext: ./services/kitchen-service
     dockerfilePath: ./services/kitchen-service/Dockerfile
     envVars:
-      - key: KITCHEN_DATABASE_URL
-        sync: false
+      - key: MANAGER_DATABASE_URL
+        fromDatabase:
+          type: pserv
+          name: kitchen-db
+          property: connectionString
       - fromGroup: jornada-secrets
