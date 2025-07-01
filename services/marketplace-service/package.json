@@ -4,8 +4,9 @@
   "description": "Servicio de MERCADO externo",
   "main": "index.ts",
   "scripts": {
-    "dev": "nodemon",
-    "test": "jest"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon"
   },
   "keywords": [],
   "author": "",

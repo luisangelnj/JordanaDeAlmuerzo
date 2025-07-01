@@ -1,6 +1,3 @@
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-}
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { OrderBatch } from './entities/OrderBatch.entity';

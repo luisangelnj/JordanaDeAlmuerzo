@@ -1,5 +1,41 @@
 
 services:
+  frontend:
+    build:
+      context: ./services/frontend-service
+      dockerfile: Dockerfile.dev
+    container_name: frontend-service
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./services/frontend-service:/app
+      - /app/node_modules
+    environment:
+      VITE_VITE_BACKEND_API_URL: http://localhost:3001/api
+    depends_on:
+      manager:
+        condition: service_started
+    networks:
+      - jornada-network
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq-service
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"     # Puerto para mensajes
+      - "15672:15672"   # Puerto para Interfaz web de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jornada-network
+
   manager-db:
     image: postgres:14-alpine # Usamos una imagen oficial de PostgreSQL
     container_name: manager-db
@@ -17,19 +53,23 @@ services:
   manager:
     build:
       context: ./services/manager-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3001"
     environment:
-      - NODE_ENV=production
       - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      - PORT= 3001
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - DB_HOST=manager-db
       - DB_PORT=5432
       - DB_USERNAME=manager_user
       - DB_PASSWORD=manager_password
       - DB_DATABASE=manager_db
-      - RABBITMQ_URL=amqps://vukbegwv:kxqAZM3JBKQBuOj2r2q_PcE8CEzhcU7U@shrimp.rmq.cloudamqp.com/vukbegwv
     volumes:
       - ./services/manager-service/src:/app/src
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       manager-db:
         condition: service_started
     networks:
@@ -42,6 +82,8 @@ services:
       POSTGRES_USER: kitchen_user
       POSTGRES_PASSWORD: kitchen_password
       POSTGRES_DB: kitchen_db
+    ports:
+      - "5434:5432"
     volumes:
       - kitchen-db-data:/var/lib/postgresql/data
     networks:
@@ -50,18 +92,19 @@ services:
   kitchen:
     build:
       context: ./services/kitchen-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     environment:
-      - NODE_ENV=production
-      - DB_HOST=manager-db
+      - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
+      - DB_HOST=kitchen-db
       - DB_PORT=5432
-      - DB_USERNAME=manager_user
-      - DB_PASSWORD=manager_password
-      - DB_DATABASE=manager_db
-      - RABBITMQ_URL=amqps://vukbegwv:kxqAZM3JBKQBuOj2r2q_PcE8CEzhcU7U@shrimp.rmq.cloudamqp.com/vukbegwv
+      - DB_USERNAME=kitchen_user
+      - DB_PASSWORD=kitchen_password
+      - DB_DATABASE=kitchen_db
     volumes:
       - ./services/kitchen-service/src:/app/src
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       kitchen-db:
         condition: service_started
     networks:
@@ -84,18 +127,19 @@ services:
   warehouse:
     build:
       context: ./services/warehouse-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     environment:
-      - NODE_ENV=production
-      - DB_HOST=manager-db
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - DB_HOST=warehouse-db
       - DB_PORT=5432
-      - DB_USERNAME=manager_user
-      - DB_PASSWORD=manager_password
-      - DB_DATABASE=manager_db
-      - RABBITMQ_URL=amqps://vukbegwv:kxqAZM3JBKQBuOj2r2q_PcE8CEzhcU7U@shrimp.rmq.cloudamqp.com/vukbegwv
+      - DB_USERNAME=warehouse_user
+      - DB_PASSWORD=warehouse_password
+      - DB_DATABASE=warehouse_db
     volumes:
       - ./services/warehouse-service/src:/app/src
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       warehouse-db:
         condition: service_started
     networks:
@@ -104,12 +148,15 @@ services:
   marketplace:
     build:
       context: ./services/marketplace-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     environment:
-      - RABBITMQ_URL=amqps://vukbegwv:kxqAZM3JBKQBuOj2r2q_PcE8CEzhcU7U@shrimp.rmq.cloudamqp.com/vukbegwv
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - ALEGRA_EXTERNAL_MARKETPLACE_API= https://recruitment.alegra.com/api/farmers-market/buy
     volumes:
       - ./services/marketplace-service/src:/app/src
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - jornada-network
 
