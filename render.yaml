@@ -1,0 +1,51 @@
+# render.yaml
+databases:
+  - name: manager-db
+    plan: free
+    postgresMajorVersion: "14"
+
+services:
+  # --- API del Manager ---
+  - name: manager-service
+    type: web
+    plan: free
+    runtime: docker
+    dockerContext: ./services/manager-service
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        sync: false
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: manager-db
+          property: host
+      - key: DB_PORT
+        fromService:
+          type: pserv
+          name: manager-db
+          property: port
+      - key: DB_USERNAME
+        fromService:
+          type: pserv
+          name: manager-db
+          property: user
+      - key: DB_PASSWORD
+        fromService:
+          type: pserv
+          name: manager-db
+          property: password
+      - key: DB_DATABASE
+        fromService:
+          type: pserv
+          name: manager-db
+          property: database
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: manager-db
+          property: connectionString
+      - key: RABBITMQ_URL
+        sync: false

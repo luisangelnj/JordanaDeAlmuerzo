@@ -1,16 +1,21 @@
-# Dockerfile simple para desarrollo
-FROM node:20-alpine
-
+# ----- Etapa 1: Builder -----
+FROM node:20-alpine AS builder
 WORKDIR /app
-
 COPY package*.json ./
 RUN npm install
-
-# Copiamos todo para tener una base, pero el volumen lo sobreescribirá
 COPY . .
+RUN npm run build
 
-# El puerto que expone tu API de Express
+# ----- Etapa 2: Production -----
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+COPY tsconfig.json ./
+RUN npm install
+COPY --from=builder /app/dist ./dist
+COPY entrypoint.sh ./
+RUN chmod +x ./entrypoint.sh
+
 EXPOSE 3001
-
-# El comando por defecto que se ejecutará
-CMD ["npm", "run", "dev"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["npm", "run", "start"]
