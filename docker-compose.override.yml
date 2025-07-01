@@ -1,4 +1,15 @@
 services:
+  frontend:
+    build:
+      context: ./services/frontend-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./services/frontend-service:/app
+      - /app/node_modules
+    command: npm run dev
+
   manager:
     build:
       context: ./services/manager-service
@@ -7,6 +18,11 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
+      - DB_HOST=manager-db
+      - DB_PORT=5432
+      - DB_USERNAME=manager_user
+      - DB_PASSWORD=manager_password
+      - DB_DATABASE=manager_db
     volumes:
       - ./services/manager-service/src:/app/src
       - /app/node_modules

@@ -1,0 +1,18 @@
+FROM node:22
+
+
+WORKDIR /app
+
+# Copiamos solo los archivos de dependencias e instalamos
+# Esto aprovecha el caché de Docker para no reinstalar todo cada vez
+COPY package*.json ./
+RUN npm install
+
+# Copiamos el resto del código. Esto servirá como base si el volumen no está montado
+COPY . .
+
+# Exponemos el puerto por defecto de Vite
+EXPOSE 5173
+
+# El comando por defecto para iniciar el servidor de desarrollo
+CMD ["npm", "run", "dev"]
