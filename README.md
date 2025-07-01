@@ -1,6 +1,6 @@
 # Reto Técnico: Jornada de Almuerzo gratis
 
-Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios robusta y escalable.
+Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios **robusta y escalable**.
 
 **URL de la aplicación desplegada:** 
 `https://jornada-de-almuerzo-front-end.vercel.app/` 
@@ -17,7 +17,61 @@ El sistema automatiza el flujo de un restaurante durante una jornada de donació
 El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
 
 ![Diagrama de Arquitectura](https://imgur.com/a/LKBkUuG)
+## Flujo Detallado de una Orden
 
+El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización.
+
+1.  **Inicio de la Orden:**
+    * El **Gerente** utiliza la interfaz de usuario para solicitar una cantidad `N` de platos.
+    * El **Frontend** (desplegado en Vercel) realiza una llamada API (`POST /api/orders`) al único punto de entrada del backend, el `manager-service`.
+
+2.  **Creación y Delegación de la Orden:**
+    * El **Manager Service** (en Render) recibe la petición.
+    * Guarda un nuevo registro `OrderBatch` en su base de datos (`manager-db` en Render) con estado `PENDING`.
+    * Publica un mensaje con `{ batchId, quantity }` en la cola `order_requests_queue` de RabbitMQ (CloudAMQP).
+
+3.  **Selección y Planificación de la Cocina:**
+    * Una instancia del **Kitchen Service** consume el mensaje de la cola.
+    * Selecciona las `N` recetas al azar de su lista de recetas.
+    * Guarda un registro por cada plato seleccionado en su base de datos (`kitchen-db`) con el estado inicial `PENDING_INGREDIENTS`.
+    * Calcula la suma total de todos los ingredientes necesarios y publica un mensaje con la lista completa en la cola `ingredient_requests_queue`.
+
+4.  **Verificación de Inventario en la Bodega:**
+    * Una instancia del **Warehouse Service** consume la solicitud de ingredientes.
+    * Consulta su base de datos de inventario (`warehouse-db`).
+    * **Si tiene stock suficiente**, descuenta los ingredientes y salta directamente al **Paso 8**.
+    * **Si no tiene stock suficiente**, continúa al **Paso 5**.
+
+5.  **Creación de Orden de Compra:**
+    * El **Warehouse Service** guarda el estado de la solicitud en su base de datos como `PENDING_PURCHASE`.
+    * Publica un evento en `order_status_update_queue` para que el dashboard muestre el estado "Comprando Ingredientes".
+    * Publica un mensaje con solo los ingredientes faltantes en la cola `marketplace_purchase_queue`.
+
+6.  **Compra en el Mercado Externo:**
+    * Una instancia del **Marketplace Service** consume la orden de compra.
+    * Utiliza su lógica de "Compra Agresiva", haciendo llamadas repetidas a la **API Externa** hasta conseguir la cantidad total de cada ingrediente.
+    * Una vez que ha comprado todo, publica un único mensaje de confirmación en la cola `purchase_confirmation_queue`.
+
+7.  **Recepción y Re-evaluación en Bodega:**
+    * El **Warehouse Service** (a través de su consumidor de compras) recibe la confirmación.
+    * Actualiza su inventario en la `warehouse-db` con los nuevos ingredientes.
+    * Publica un evento con el nuevo estado del inventario para que el dashboard se actualice.
+    * Re-evalúa la solicitud original y, al confirmar que el stock ya es suficiente, procede al siguiente paso.
+
+8.  **Despacho de Ingredientes a la Cocina:**
+    * El **Warehouse Service** descuenta de su inventario todos los ingredientes para la orden completa.
+    * Publica una última actualización de inventario.
+    * Envía el mensaje final de "listo" a la cola `ingredient_ready_queue`.
+
+9.  **Preparación de Platillos:**
+    * El **Kitchen Service** recibe el mensaje de "listo".
+    * Publica un evento para que el dashboard muestre el estado "Preparando Platillos".
+    * Se simulan 6 segundos de preparación en cocina.
+    * Actualiza el estado de los platos en su `kitchen-db` a `PREPARING` y luego a `COMPLETED` tras simular el tiempo de cocción.
+
+10. **Finalización del Ciclo:**
+    * Una vez todos los platos están listos, el **Kitchen Service** publica un último evento con el estado `COMPLETED` y la lista de platos preparados.
+    * El **Manager Service** consume este evento final y actualiza el estado de la `OrderBatch` en su `manager-db` a `COMPLETED`, dejando toda la información lista para ser consultada por el frontend.
 
 ### Microservicios:
 * **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
@@ -46,6 +100,7 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 2.  Navegar a la raíz del proyecto.
 3.  Crear los archivos `.env` necesarios en cada servicio para las variables de entorno locales (principalmente para las migraciones).
 4.  Levantar todo el entorno con Docker Compose: `docker-compose up --build`
+
 5.  Acceder al frontend en `http://localhost:5173`.
 
 ## Pruebas (Testing)
@@ -67,7 +122,7 @@ npm test
 
 * **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
 * **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
-* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`) están diseñados para ser escalados horizontalmente, permitiendo procesar múltiples flujos en paralelo. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
+* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`) están **diseñados para ser escalados horizontalmente**, permitiendo procesar múltiples flujos en paralelo. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
 * **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
 * **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
 
