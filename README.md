@@ -38,7 +38,7 @@ Este proyecto está **100% desarrollado con contenedores Docker** para garantiza
     # Levanta todos los servicios
     docker-compose up --build
     # O en este ejemplo levanta 2 instancias de kitchen y 2 de warehouse para escalar
-    docker-compose up --build --scale kitchen-service=2 --scale warehouse-service=2
+    docker-compose up --build --scale kitchen=2 --scale warehouse=2
     ```
 
 4.  **Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:**
