@@ -3,15 +3,19 @@
 Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios **robusta y escalable**.
 
 **URL de la aplicación desplegada:** 
+`https://jornada-de-almuerzo.luisangelnj.com/` (Dominio en propagación)
+o
 `https://jornada-de-almuerzo-front-end.vercel.app/` 
-o 
-`https://jornada-de-almuerzo.luisangelnj.com/` (Dominio propagandose)
+ 
 
 ## Descripción del Proyecto
 
 El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es **gestionar una alta concurrencia de pedidos de platos**, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
 
-![Diagrama de arquitectura](https://i.postimg.cc/KjnFd81n/Screenshot-1.png)
+![Dashboard](https://i.postimg.cc/cHQhpQVq/Screenshot-1.png)
+```
+* Ejemplo con 2 instancias kitchen y 2 instancias warehouse
+```
 El dashboard proporciona una visualización centralizada y en tiempo real del estado completo del sistema. Permite al gerente monitorear las estadísticas clave de la jornada y seguir el progreso de cada orden individual a través de todo su ciclo de vida: desde PENDIENTE, pasando por COMPRANDO INGREDIENTES y PREPARANDO PLATILLOS, hasta su entrega final como COMPLETADA.
 
 El sistema está diseñado para soportar el envío de múltiples órdenes masivas de forma simultánea. Estas solicitudes son encoladas y procesadas eficientemente por los workers del backend. Para fines del reto, la interfaz limita cada orden a un máximo de 999 platillos, sin embargo, la arquitectura subyacente está diseñada para escalar de forma segura. Los servicios de "workers" (kitchen, warehouse y marketplace) pueden incrementar sus instancias para aumentar la capacidad de procesamiento y soportar una carga de trabajo aún mayor si fuera necesario, garantizando la agilidad del proceso.
@@ -46,7 +50,6 @@ Este proyecto está **100% desarrollado con contenedores Docker** para garantiza
     * **Construirá** las imágenes de Docker para cada microservicio.
     * **Iniciará** todos los contenedores en el orden correcto.
     * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
-    * Los servicios se iniciarán en modo de desarrollo con **"hot-reloading"**, por lo que cualquier cambio que hagas en el código se reflejará al instante.
 
 ### Acceder a los Servicios
 Una vez que todos los contenedores estén corriendo, podrás acceder a:
@@ -59,7 +62,7 @@ Si deseas probar el comportamiento del sistema bajo una carga de trabajo más al
 Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
 ```bash
 # Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
-docker-compose up --build --scale kitchen-service=2 --scale warehouse-service=2
+docker-compose up --build --scale kitchen=3 --scale warehouse=3
 ```
 
 ## Arquitectura del Sistema
@@ -70,16 +73,16 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 
 
 ### Microservicios:
-* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
-* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
-* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
-* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
+* **Manager Service (Render.com)**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Kitchen Service (Render.com)**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
+* **Warehouse Service (Render.com)**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
+* **Marketplace Service (Render.com)**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
 * **Frontend (Vercel)**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
-* **3 Bases de Datos (PostgreSQL)**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total.
+* **3 Bases de Datos (PostgreSQL en Render.com)**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total.
     - Manager-DB
     - Kitchen-DB
     - Warehouse-DB
-* **Mensajería (CloudAMQP)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
+* **Mensajería (RabbitMQ en CloudAMQP)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
 
 
 ## Flujo Detallado de una Orden
@@ -140,9 +143,9 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
 
 
 ## Stack Tecnológico
-* **Backend:** Node.js, TypeScript
-* **Frontend:** Vue.js, Vite, Axios, TailwindCSS
-* **Bases de Datos:** PostgreSQL
+* **Backend:** Node.js, TypeScript (Levantado en Render.com)
+* **Frontend:** Vue.js, Vite, Axios, Tailwind CSS (Levantado en Vercel)
+* **Bases de Datos:** PostgreSQL (Levantado en Vercel)
 * **Mensajería:** RabbitMQ (gestionado en CloudAMQP)
 * **Contenedores:** Docker & Docker Compose
 * **Despliegue:** Render (para el backend) y Vercel (para el frontend)
