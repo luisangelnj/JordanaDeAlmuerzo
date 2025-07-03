@@ -1,0 +1,67 @@
+databases:
+  - name: manager-db
+    plan: free
+    postgresMajorVersion: "14"
+  - name: kitchen-db
+    plan: free
+    postgresMajorVersion: "14"
+  - name: warehouse-db
+    plan: free
+    postgresMajorVersion: "14"
+
+services:
+  # --- API del Manager ---
+  - name: manager-service
+    type: web
+    plan: free
+    runtime: docker
+    dockerContext: ./services/manager-service
+    dockerfilePath: ./services/manager-service/Dockerfile
+    envVars:
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MANAGER_DATABASE_URL
+        fromDatabase:
+          type: pserv
+          name: manager-db
+          property: connectionString
+      - fromGroup: jornada-secrets
+  
+  - name: kitchen-service
+    type: worker
+    plan: standard
+    runtime: docker
+    dockerContext: ./services/kitchen-service
+    dockerfilePath: ./services/kitchen-service/Dockerfile
+    envVars:
+      - key: KITCHEN_DATABASE_URL
+        fromDatabase:
+          type: pserv
+          name: kitchen-db
+          property: connectionString
+      - fromGroup: jornada-secrets
+        
+  - name: warehouse-service
+    type: worker
+    plan: starter
+    runtime: docker
+    dockerContext: ./services/warehouse-service
+    dockerfilePath: ./services/warehouse-service/Dockerfile
+    envVars:
+      - key: WAREHOUSE_DATABASE_URL
+        fromDatabase:
+          type: pserv
+          name: warehouse-db
+          property: connectionString
+      - fromGroup: jornada-secrets
+        
+  - name: marketplace-service
+    type: worker
+    plan: starter
+    runtime: docker
+    dockerContext: ./services/marketplace-service
+    dockerfilePath: ./services/marketplace-service/Dockerfile
+    envVars:
+      - key: ALEGRA_EXTERNAL_MARKETPLACE_API
+        sync: false
+      - fromGroup: jornada-secrets
