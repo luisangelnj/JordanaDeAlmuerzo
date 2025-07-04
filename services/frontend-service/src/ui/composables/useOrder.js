@@ -21,7 +21,7 @@ const useOrder = () => {
     const orderList = ref([])
     const orderModel = ref({
         orderId: '',
-        quantity: 1
+        quantity: 10
     })
     const errors = ref({})
 
