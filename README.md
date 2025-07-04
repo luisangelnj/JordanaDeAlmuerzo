@@ -3,27 +3,28 @@
 Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios **robusta y escalable**.
 
 **URL de la aplicación desplegada:** 
-`https://jornada-de-almuerzo.luisangelnj.com/` (Dominio en propagación)
+[jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio en propagación)
 o
-`https://jornada-de-almuerzo-front-end.vercel.app/` 
- 
+[jornada-de-almuerzo-front-end.vercel.app](https://jornada-de-almuerzo-front-end.vercel.app/)
+
 
 ## Descripción del Proyecto
 
 El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es **gestionar una alta concurrencia de pedidos de platos**, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
 
 ![Dashboard](https://i.postimg.cc/cHQhpQVq/Screenshot-1.png)
-```
-* Ejemplo con 2 instancias kitchen y 2 instancias warehouse
-```
-El dashboard proporciona una visualización centralizada y en tiempo real del estado completo del sistema. Permite al gerente monitorear las estadísticas clave de la jornada y seguir el progreso de cada orden individual a través de todo su ciclo de vida: desde PENDIENTE, pasando por COMPRANDO INGREDIENTES y PREPARANDO PLATILLOS, hasta su entrega final como COMPLETADA.
+El dashboard proporciona una visualización centralizada y en tiempo real del estado completo del sistema. Permite al gerente monitorear las estadísticas clave de la jornada y seguir el progreso de cada orden individual a través de todo su ciclo de vida: desde EN COLA, pasando por COMPRANDO INGREDIENTES y PREPARANDO PLATILLOS, hasta su entrega final como ÓRDEN COMPLETADA.
 
 El sistema está diseñado para soportar el envío de múltiples órdenes masivas de forma simultánea. Estas solicitudes son encoladas y procesadas eficientemente por los workers del backend. Para fines del reto, la interfaz limita cada orden a un máximo de 999 platillos, sin embargo, la arquitectura subyacente está diseñada para escalar de forma segura. Los servicios de "workers" (kitchen, warehouse y marketplace) pueden incrementar sus instancias para aumentar la capacidad de procesamiento y soportar una carga de trabajo aún mayor si fuera necesario, garantizando la agilidad del proceso.
 
 
 ## Cómo Ejecutar en Desarrollo Local
 
-Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, y el sistema de mensajería.
+Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
+
+### Prerrequisitos
+* Tener instalado **Docker** y **Docker Compose**.
+* Tener instalado **Git**.
 
 ### Instrucciones de Arranque
 
@@ -41,7 +42,8 @@ Este proyecto está **100% desarrollado con contenedores Docker** para garantiza
     ```bash
     # Levanta todos los servicios
     docker-compose up --build
-    # O en este ejemplo levanta 2 instancias de kitchen y 2 de warehouse para escalar
+
+    # O ejemplo levantando 2 instancias de kitchen y 2 de warehouse para escalar
     docker-compose up --build --scale kitchen=2 --scale warehouse=2
     ```
 
@@ -73,16 +75,16 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 
 
 ### Microservicios:
-* **Manager Service (Render.com)**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
-* **Kitchen Service (Render.com)**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
-* **Warehouse Service (Render.com)**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
-* **Marketplace Service (Render.com)**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
-* **Frontend (Vercel)**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
-* **3 Bases de Datos (PostgreSQL en Render.com)**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total.
+* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
+* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
+* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
+* **Frontend**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
+* **3 Bases de Datos**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total:
     - Manager-DB
     - Kitchen-DB
     - Warehouse-DB
-* **Mensajería (RabbitMQ en CloudAMQP)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
+* **Mensajería (RabbitMQ)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
 
 
 ## Flujo Detallado de una Orden
@@ -90,12 +92,12 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización.
 
 1.  **Inicio de la Orden:**
-    * El **Gerente** utiliza la interfaz de usuario para solicitar una cantidad `N` de platos.
-    * El **Frontend** (desplegado en Vercel) realiza una llamada API (`POST /api/orders`) al único punto de entrada del backend, el `manager-service`.
+    * El Gerente de la Jornada utiliza la interfaz de usuario para solicitar una cantidad `N` de platos.
+    * El **Frontend** realiza una llamada API (`POST /api/orders`) al único punto de entrada del backend, el **Manager Service**.
 
 2.  **Creación y Delegación de la Orden:**
-    * El **Manager Service** (en Render) recibe la petición.
-    * Guarda un nuevo registro `OrderBatch` en su base de datos (`manager-db` en Render) con estado `PENDING`.
+    * El **Manager Service** recibe la petición.
+    * Guarda un nuevo registro `OrderBatch` en su base de datos (`manager-db`) con estado `PENDING`.
     * Publica un mensaje con `{ batchId, quantity }` en la cola `order_requests_queue` de RabbitMQ (CloudAMQP).
 
 3.  **Selección y Planificación de la Cocina:**
@@ -116,9 +118,9 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
     * Publica un mensaje con solo los ingredientes faltantes en la cola `marketplace_purchase_queue`.
 
 6.  **Compra en el Mercado Externo:**
-    * Una instancia del **Marketplace Service** consume la orden de compra.
-    * Utiliza su lógica de "Compra Agresiva", haciendo llamadas repetidas a la **API Externa** hasta conseguir la cantidad total de cada ingrediente.
-    * Una vez que ha comprado todo, publica un único mensaje de confirmación en la cola `purchase_confirmation_queue`.
+    * Una instancia del Marketplace Service consume la orden de compra desde la cola `marketplace_purchase_queue`.
+    * Intenta comprar todos los ingredientes solicitados usando una lógica de llamada controlada a la API Externa evitando así bloqueos por exceso de peticiones, haciendo una llamada a la API externa por cada ingrediente.
+    * Inmediatamente después, publica un mensaje en `purchase_confirmation_queue` con los detalles de cualquier compra que haya sido exitosa, aunque sea parcial. Si ninguna compra tuvo éxito, re-encola la petición para un reintento automático.
 
 7.  **Recepción y Re-evaluación en Bodega:**
     * El **Warehouse Service** (a través de su consumidor de compras) recibe la confirmación.
@@ -143,18 +145,13 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
 
 
 ## Stack Tecnológico
-* **Backend:** Node.js, TypeScript (Levantado en Render.com)
-* **Frontend:** Vue.js, Vite, Axios, Tailwind CSS (Levantado en Vercel)
-* **Bases de Datos:** PostgreSQL (Levantado en Vercel)
-* **Mensajería:** RabbitMQ (gestionado en CloudAMQP)
+* **Backend:** Node.js, TypeScript
+* **Frontend:** Vue.js, Vite, Axios, Tailwind CSS
+* **Bases de Datos:** PostgreSQL
+* **Mensajería:** RabbitMQ
 * **Contenedores:** Docker & Docker Compose
-* **Despliegue:** Render (para el backend) y Vercel (para el frontend)
+* **Despliegue:** Render.com (para el backend), Vercel.com (para el frontend), CloudAMQP.com (para gestionado de mensajería)
 * **Testing:** Jest, ts-jest
-
-
-### Prerrequisitos
-* Tener instalado **Docker** y **Docker Compose**.
-* Tener instalado **Git**.
 
 ## Pruebas (Testing)
 
@@ -182,4 +179,4 @@ npm test
 ## Futuras Mejoras
 * **Seguridad:** Implementar un sistema de autenticación y autorización con JWT para proteger el acceso al dashboard.
 * **WebSockets:** Reemplazar el polling del frontend con una conexión WebSocket para actualizaciones del dashboard en tiempo real de forma más eficiente.
-- **Inventario inteligente con IA:** Implementar un sistema de predicción que analice el historial de órdenes y movimientos para anticipar la demanda de ingredientes. Esto permitirá al `warehouse-service` hacer compras anticipadas de forma automática, reduciendo tiempos de espera y mejorando la eficiencia general del flujo.
+* **Inventario inteligente con IA:** Implementar un sistema de predicción que analice el historial de órdenes y movimientos para anticipar la demanda de ingredientes. Esto permitirá al `warehouse-service` hacer compras anticipadas de forma automática, reduciendo tiempos de espera y mejorando la eficiencia general del flujo.
