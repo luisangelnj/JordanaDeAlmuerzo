@@ -26,6 +26,7 @@ services:
       - DB_USERNAME=manager_user
       - DB_PASSWORD=manager_password
       - DB_DATABASE=manager_db
+      - TYPEORM_LOGGING=false
     volumes:
       - ./services/manager-service/src:/app/src
       - /app/node_modules
@@ -42,6 +43,7 @@ services:
       - DB_USERNAME=kitchen_user
       - DB_PASSWORD=kitchen_password
       - DB_DATABASE=kitchen_db
+      - TYPEORM_LOGGING=false
     volumes:
       - ./services/kitchen-service/src:/app/src
       - /app/node_modules
@@ -58,6 +60,7 @@ services:
       - DB_USERNAME=warehouse_user
       - DB_PASSWORD=warehouse_password
       - DB_DATABASE=warehouse_db
+      - TYPEORM_LOGGING=false
     volumes:
       - ./services/warehouse-service/src:/app/src
       - /app/node_modules
