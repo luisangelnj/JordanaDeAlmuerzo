@@ -43,12 +43,13 @@ Este proyecto está **100% desarrollado con contenedores Docker** para garantiza
     # Levanta todos los servicios
     docker-compose up --build
 
-    # O ejemplo levantando 2 instancias de kitchen y 2 de warehouse para escalar
+    # O ejemplo levantando todos los servicios más 2 instancias de kitchen y 2 de warehouse para escalar
     docker-compose up --build --scale kitchen=2 --scale warehouse=2
     ```
 
-4.  **Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:**
-    ¡Y listo! Este único comando se encargará de todo:
+4.  **¡Y listo!:**
+    Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:
+    Este único comando se encargará de todo:
     * **Construirá** las imágenes de Docker para cada microservicio.
     * **Iniciará** todos los contenedores en el orden correcto.
     * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
