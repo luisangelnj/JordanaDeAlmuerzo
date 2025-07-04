@@ -3,11 +3,10 @@ services:
     build:
       context: ./services/frontend-service
       dockerfile: Dockerfile
-    environment:
-      VITE_BACKEND_API_URL: http://localhost:3001/api
-    volumes:
-      - ./services/frontend-service:/app
-      - /app/node_modules
+      args:
+        VITE_BACKEND_API_URL: http://localhost:3001/api
+    ports:
+      - "8080:80"
     depends_on:
       manager:
         condition: service_started
@@ -40,7 +39,7 @@ services:
       POSTGRES_PASSWORD: manager_password
       POSTGRES_DB: manager_db
     ports:
-      - "5432:5432" # Expone el puerto para que puedas conectarte desde tu máquina si lo necesitas
+      - "5432:5432"
     volumes:
       - manager-db-data:/var/lib/postgresql/data # Persiste los datos
     networks:
@@ -50,13 +49,13 @@ services:
     build:
       context: ./services/manager-service
       dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
     environment:
       - NODE_ENV=production
-      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-      - DATABASE_URL=postgres://manager_user:manager_password@manager-db:5432/manager_db
-      - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
-    volumes:
-      - ./services/manager-service/src:/app/src
+      - CORS_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+      - MANAGER_DATABASE_URL=postgres://manager_user:manager_password@manager-db:5432/manager_db
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -83,10 +82,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://kitchen_user:kitchen_password@kitchen-db:5432/kitchen_db
-      - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
-    volumes:
-      - ./services/kitchen-service/src:/app/src
+      - KITCHEN_DATABASE_URL=postgres://kitchen_user:kitchen_password@kitchen-db:5432/kitchen_db
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -115,14 +112,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
-      - DB_HOST=manager-db
-      - DB_PORT=5432
-      - DB_USERNAME=manager_user
-      - DB_PASSWORD=manager_password
-      - DB_DATABASE=manager_db
-      - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
-    volumes:
-      - ./services/warehouse-service/src:/app/src
+      - WAREHOUSE_DATABASE_URL=postgres://warehouse_user:warehouse_password@warehouse-db:5432/warehouse_db
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -136,7 +127,7 @@ services:
       context: ./services/marketplace-service
       dockerfile: Dockerfile
     environment:
-      - RABBITMQ_URL= amqp://admin:admin@rabbitmq:5672
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - ALEGRA_EXTERNAL_MARKETPLACE_API= https://recruitment.alegra.com/api/farmers-market/buy
     volumes:
       - ./services/marketplace-service/src:/app/src
