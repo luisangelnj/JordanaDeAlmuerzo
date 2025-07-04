@@ -20,6 +20,7 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
+      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
       - DB_HOST=manager-db
       - DB_PORT=5432
       - DB_USERNAME=manager_user
