@@ -231,9 +231,7 @@ function startPolling() {
 onMounted(async () => {
     const loader = $loading.show()
     try {
-        await getAllOrders();
-        console.log(orderList.value);
-        
+        await getAllOrders();        
 
         startPolling()
         
