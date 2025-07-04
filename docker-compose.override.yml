@@ -1,4 +1,17 @@
 services:
+  frontend:
+    build:
+      context: ./services/frontend-service
+      dockerfile: Dockerfile.dev
+    environment:
+      - VITE_BACKEND_API_URL=http://localhost:3001/api
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./services/frontend-service:/app
+      - /app/node_modules
+    command: npm run dev
+
   manager:
     build:
       context: ./services/manager-service
@@ -7,6 +20,12 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
+      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      - DB_HOST=manager-db
+      - DB_PORT=5432
+      - DB_USERNAME=manager_user
+      - DB_PASSWORD=manager_password
+      - DB_DATABASE=manager_db
     volumes:
       - ./services/manager-service/src:/app/src
       - /app/node_modules
@@ -24,7 +43,7 @@ services:
       - DB_PASSWORD=kitchen_password
       - DB_DATABASE=kitchen_db
     volumes:
-      - ./services/kitchen-service:/app
+      - ./services/kitchen-service/src:/app/src
       - /app/node_modules
     command: npm run dev
 
@@ -40,7 +59,7 @@ services:
       - DB_PASSWORD=warehouse_password
       - DB_DATABASE=warehouse_db
     volumes:
-      - ./services/warehouse-service:/app
+      - ./services/warehouse-service/src:/app/src
       - /app/node_modules
     command: npm run dev
 
@@ -49,6 +68,6 @@ services:
       context: ./services/marketplace-service
       dockerfile: Dockerfile.dev
     volumes:
-      - ./services/marketplace-service:/app
+      - ./services/marketplace-service/src:/app/src
       - /app/node_modules
     command: npm run dev

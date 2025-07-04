@@ -13,7 +13,7 @@ services:
   # --- API del Manager ---
   - name: manager-service
     type: web
-    plan: free
+    plan: standard
     runtime: docker
     dockerContext: ./services/manager-service
     dockerfilePath: ./services/manager-service/Dockerfile
