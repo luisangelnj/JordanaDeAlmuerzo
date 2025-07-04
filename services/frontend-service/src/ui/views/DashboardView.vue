@@ -1,6 +1,6 @@
 <template>
   <admin-layout>
-    <div class="grid sm:grid-cols-1 xl:grid-cols-12 gap-4 md:gap-2 lg:max-h-[90vh]">
+    <div class="grid sm:grid-cols-1 xl:grid-cols-12 gap-4 md:gap-2 xl:max-h-[90vh]">
 
       <div class="col-span-1 xl:col-span-7 max-h-[50vh]">
         <place-order :orderStats="statsModel.orderStats" :errors="errors" />
