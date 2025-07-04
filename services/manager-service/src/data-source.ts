@@ -4,6 +4,12 @@ import { DataSource } from 'typeorm';
 import * as entities from './entities';
 import * as migrations from './migrations';
 
+function isTypeOrmLoggingEnabled() {
+  const isProd = process.env.NODE_ENV === 'production';
+  const envVar = process.env.TYPEORM_LOGGING?.toLowerCase();
+  return !isProd && envVar !== 'false';
+}
+
 export const AppDataSource = new DataSource({
     type: 'postgres',
 
@@ -24,7 +30,7 @@ export const AppDataSource = new DataSource({
         : false,
 
     synchronize: false, // ¡MUY IMPORTANTE! Nunca usar 'true' en producción. Usaremos migraciones.
-    logging: process.env.NODE_ENV !== 'production',
+    logging: isTypeOrmLoggingEnabled(),
     entities: Object.values(entities),
     migrations: Object.values(migrations),
 });
