@@ -3,9 +3,8 @@
 Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios **robusta y escalable**.
 
 **URL de la aplicación desplegada:** 
-[jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio en propagación)
-o
-[jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/)
+* [jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio propio en propagación)
+* [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de sandbox)
 
 
 ## Descripción del Proyecto
