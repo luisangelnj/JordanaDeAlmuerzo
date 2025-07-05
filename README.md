@@ -5,7 +5,7 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
 **URL de la aplicación desplegada:** 
 [jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio en propagación)
 o
-[jornada-de-almuerzo-front-end.vercel.app](https://jornada-de-almuerzo-front-end.vercel.app/)
+[jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/)
 
 
 ## Descripción del Proyecto
