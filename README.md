@@ -3,92 +3,21 @@
 Este proyecto es la solución al reto técnico de la jornada de donación, que consiste en un sistema automatizado para gestionar la preparación de platos, el inventario de ingredientes y las compras externas, todo bajo una arquitectura de microservicios **robusta y escalable**.
 
 **URL de la aplicación desplegada:** 
-[jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio en propagación)
-o
-[jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/)
+* [jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio propio en propagación)
+* [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de sandbox)
 
 
 ## Descripción del Proyecto
 
-El sistema automatiza el flujo de un restaurante durante una jornada de donación de comida gratis. El objetivo es **gestionar una alta concurrencia de pedidos de platos**, seleccionando recetas al azar, verificando el inventario de ingredientes, realizando compras en una plaza de mercado externa si es necesario, y finalmente preparando y completando las órdenes, todo de forma asíncrona y sin intervención manual.
+Este sistema automatiza el flujo operativo de un restaurante durante una jornada de donación de comida gratuita. Permite **procesar múltiples órdenes masivas de forma asíncrona y escalable**, gestionando desde la generación aleatoria de recetas, verificación de inventario, compras externas y preparación de platillos, hasta la finalización de las órdenes, sin intervención manual.
 
 ![Dashboard](https://i.postimg.cc/cHQhpQVq/Screenshot-1.png)
-El dashboard proporciona una visualización centralizada y en tiempo real del estado completo del sistema. Permite al gerente monitorear las estadísticas clave de la jornada y seguir el progreso de cada orden individual a través de todo su ciclo de vida: desde EN COLA, pasando por COMPRANDO INGREDIENTES y PREPARANDO PLATILLOS, hasta su entrega final como ÓRDEN COMPLETADA.
+El dashboard muestra en tiempo real el estado completo del sistema, permitiendo al gerente monitorear cada orden a lo largo de su ciclo de vida: **EN COLA** → **COMPRANDO INGREDIENTES** → **PREPARANDO PLATILLOS** → **ORDEN COMPLETADA**.
 
-El sistema está diseñado para soportar el envío de múltiples órdenes masivas de forma simultánea. Estas solicitudes son encoladas y procesadas eficientemente por los workers del backend. Para fines del reto, la interfaz limita cada orden a un máximo de 999 platillos, sin embargo, la arquitectura subyacente está diseñada para escalar de forma segura. Los servicios de "workers" (kitchen, warehouse y marketplace) pueden incrementar sus instancias para aumentar la capacidad de procesamiento y soportar una carga de trabajo aún mayor si fuera necesario, garantizando la agilidad del proceso.
-
-
-## Cómo Ejecutar en Desarrollo Local
-
-Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
-
-### Prerrequisitos
-* Tener instalado **Docker** y **Docker Compose**.
-* Tener instalado **Git**.
-
-### Instrucciones de Arranque
-
-1.  **Clona el repositorio:**
-    ```bash
-    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
-    ```
-
-2.  **Navega a la raíz del proyecto:**
-    ```bash
-    cd JordanaDeAlmuerzo
-    ```
-
-3.  **Levanta todo el entorno:**
-    ```bash
-    # Levanta todos los servicios
-    docker-compose up --build
-
-    # O ejemplo levantando todos los servicios más 2 instancias de kitchen y 2 de warehouse para escalar
-    docker-compose up --build --scale kitchen=2 --scale warehouse=2
-    ```
-
-4.  **¡Y listo!:**
-    Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:
-    Este único comando se encargará de todo:
-    * **Construirá** las imágenes de Docker para cada microservicio.
-    * **Iniciará** todos los contenedores en el orden correcto.
-    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
-
-### Acceder a los Servicios
-Una vez que todos los contenedores estén corriendo, podrás acceder a:
-* **Frontend de la Aplicación:** `http://localhost:5173`
-* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
-
-### Escalado de Servicios (Opcional)
-Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
-
-Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
-```bash
-# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
-docker-compose up --build --scale kitchen=3 --scale warehouse=3
-```
-
-## Arquitectura del Sistema
-
-El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
-
-![Diagrama de arquitectura](https://i.postimg.cc/Y9RPZbT1/Diagrama-sin-t-tulo-drawio.png)
+Gracias a su arquitectura basada en *microservicios* y *procesamiento encolado*, el sistema puede manejar múltiples solicitudes simultáneas de hasta 999 platillos por orden (para la actual infraestructura sandbox del reto técnico), con posibilidad de escalar horizontalmente los workers para soportar una carga aún mayor sin comprometer el rendimiento.
 
 
-### Microservicios:
-* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
-* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
-* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
-* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
-* **Frontend**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
-* **3 Bases de Datos**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total:
-    - Manager-DB
-    - Kitchen-DB
-    - Warehouse-DB
-* **Mensajería (RabbitMQ)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
-
-
-## Flujo Detallado de una Orden
+### Flujo Detallado de una Orden
 
 El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización.
 
@@ -145,7 +74,86 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
     * El **Manager Service** consume este evento final y actualiza el estado de la `OrderBatch` en su `manager-db` a `COMPLETED`, dejando toda la información lista para ser consultada por el frontend.
 
 
-## Stack Tecnológico
+## Cómo Ejecutar en Desarrollo Local
+
+Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
+
+### Prerrequisitos
+* Tener instalado **Docker** y **Docker Compose**.
+* Tener instalado **Git**.
+
+### Instrucciones de Arranque
+
+1.  **Clona el repositorio:**
+    ```bash
+    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
+    ```
+
+2.  **Navega a la raíz del proyecto:**
+    ```bash
+    cd JordanaDeAlmuerzo
+    ```
+
+3.  **Levanta todo el entorno:**
+    ```bash
+    # Levanta todos los servicios
+    docker-compose up --build
+
+    # O ejemplo levantando todos los servicios más 2 instancias de kitchen y 2 de warehouse para escalar
+    docker-compose up --build --scale kitchen=2 --scale warehouse=2
+    ```
+
+4.  **¡Y listo!:**
+    Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:
+    Este único comando se encargará de todo:
+    * **Construirá** las imágenes de Docker para cada microservicio.
+    * **Iniciará** todos los contenedores en el orden correcto.
+    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
+
+### Acceder a los Servicios
+Una vez que todos los contenedores estén corriendo, podrás acceder a:
+* **Frontend de la Aplicación:** `http://localhost:5173`
+* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
+
+### Escalado de Servicios (Opcional)
+Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
+
+Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
+```bash
+# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
+docker-compose up --build --scale kitchen=3 --scale warehouse=3
+```
+
+
+## Arquitectura del Sistema
+
+El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
+
+![Diagrama de arquitectura](https://i.postimg.cc/Y9RPZbT1/Diagrama-sin-t-tulo-drawio.png)
+
+### Decisiones de Arquitectura y Trade-offs
+
+* **Arquitectura por Capas:** Cada microservicio sigue una arquitectura por capas para separar responsabilidades. La lógica de la API en el `manager-service` actúa como la capa de Controlador. La lógica de negocio principal reside en los `workers/consumidores` de cada servicio, que fungen como la capa de `Servicio/Caso de Uso`. Finalmente, el acceso a datos se abstrae a través del `Patrón de Repositorio`, facilitado por TypeORM.
+* **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
+* **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
+* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`)  están **diseñados para ser escalables horizontalmente**, permitiendo múltiples instancias en paralelo para mejorar el rendimiento y la capacidad de procesamiento, especialmente en escenarios de alta concurrencia. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
+* **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
+* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
+
+### Microservicios:
+* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
+* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
+* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
+* **Frontend**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
+* **3 Bases de Datos**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total:
+    - Manager-DB
+    - Kitchen-DB
+    - Warehouse-DB
+* **Mensajería (RabbitMQ)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
+
+
+### Stack Tecnológico
 * **Backend:** Node.js, TypeScript
 * **Frontend:** Vue.js, Vite, Axios, Tailwind CSS
 * **Bases de Datos:** PostgreSQL
@@ -154,7 +162,7 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
 * **Despliegue:** Render.com (para el backend), Vercel.com (para el frontend), CloudAMQP.com (para gestionado de mensajería)
 * **Testing:** Jest, ts-jest
 
-## Pruebas (Testing)
+### Pruebas (Testing)
 
 El proyecto incluye pruebas unitarias para validar la lógica de negocio crítica.  Para ejecutar las pruebas de un servicio:
 ```bash
@@ -169,13 +177,6 @@ npm install
 npm test
 ```
 
-## Decisiones de Arquitectura y Trade-offs
-
-* **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
-* **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
-* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`)  están **diseñados para ser escalables horizontalmente**, permitiendo múltiples instancias en paralelo para mejorar el rendimiento y la capacidad de procesamiento, especialmente en escenarios de alta concurrencia. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
-* **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
-* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
 
 ## Futuras Mejoras
 * **Seguridad:** Implementar un sistema de autenticación y autorización con JWT para proteger el acceso al dashboard.
