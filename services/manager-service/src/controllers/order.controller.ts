@@ -74,11 +74,12 @@ const getAllOrders: RequestHandler = async (req, res) => {
         .createQueryBuilder('order')
         .orderBy(`
             CASE 
-            WHEN order.status = 'PENDING' THEN 1
-            WHEN order.status = 'PREPARING_DISHES' THEN 2
-            WHEN order.status = 'PURCHASING_INGREDIENTS' THEN 3
-            WHEN order.status = 'COMPLETED' THEN 4
-            ELSE 5
+                WHEN status = 'PENDING' THEN 1
+                WHEN status = 'PENDING_INGREDIENTS' THEN 2
+                WHEN status = 'PREPARING_DISHES' THEN 3
+                WHEN status = 'PURCHASING_INGREDIENTS' THEN 4
+                WHEN status = 'COMPLETED' THEN 5
+                ELSE 6
             END
         `)
         .addOrderBy('order.createdAt', 'DESC')

@@ -51,7 +51,8 @@ export const startKitchenWorker = async () => {
                     const dishNames = preparedDishes.map(d => d.name);
                     const selectedDishesMessage = {
                         batchId,
-                        preparedDishes: dishNames
+                        preparedDishes: dishNames,
+                        status: DishStatus.PENDING_INGREDIENTS
                     };
                     await sendToQueue(ORDER_STATUS_UPDATE_QUEUE, selectedDishesMessage);
                     console.log(`[>] Selected dishes message for batch ${batchId} sent to ${ORDER_STATUS_UPDATE_QUEUE}.`);

@@ -7,7 +7,12 @@ const INCOMING_QUEUE = 'ingredient_ready_queue';
 const ORDER_STATUS_UPDATE_QUEUE = 'order_status_update_queue';
 
 // Tiempo simulado de cocción de órden (Simular tiempo de cocción en dashboard)
-const COOKING_TIME_MS = 6000; // 6 segundos
+export function getCookTimeMs(dishCount: number): number {
+    const MAX_COOK_MS = 6_000;            // 6 s tope duro
+    const PER_DISH_MS = 200;              // 0,2 s por platillo (ajusta a tu gusto)
+    const time = dishCount * PER_DISH_MS; // crecimiento lineal
+    return Math.min(time, MAX_COOK_MS);
+}
 
 export const startIngredientConfirmationConsumer = async () => {
     try {
@@ -42,17 +47,19 @@ export const startIngredientConfirmationConsumer = async () => {
                     );
                     console.log(`[db] Dishes for batch ${batchId} are now PREPARING.`);
 
+                    const dishesForBatch = await dishRepo.findBy({ batchId });
+                    const dishCount = dishesForBatch.length;   // 👈 aquí obtienes la cantidad
+
+                    // 2. Calcular el tiempo de cocción dinámico
+                    const cookTimeMs = getCookTimeMs(dishCount);
+
                     // 2. Simular el tiempo de preparación de los platos
-                    console.log(`... Simulating cooking time for ${COOKING_TIME_MS / 1000} seconds...`);
-                    await new Promise(resolve => setTimeout(resolve, COOKING_TIME_MS));
+                    console.log(`... Simulating cooking time for ${dishCount} dish(es) for ${cookTimeMs / 1000} seconds...`);
+                    await new Promise(resolve => setTimeout(resolve, cookTimeMs));
 
                     // 3. Actualizar el estado de todos los platos a 'COMPLETED'
                     await dishRepo.update({ batchId }, { status: DishStatus.COMPLETED });
                     console.log(`[v] All dishes for batch ${batchId} are COMPLETED.`);
-
-                    // 4. Enviar la notificación final al manager-service
-                    // const dishesForBatch = await dishRepo.findBy({ batchId });
-                    // const dishNames = dishesForBatch.map(d => d.dishName);
 
                     const finalMessage = {
                         batchId,

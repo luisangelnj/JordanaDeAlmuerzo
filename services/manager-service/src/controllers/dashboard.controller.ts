@@ -16,8 +16,8 @@ const dashboardStatus: RequestHandler = async (req, res) => {
         const [orderStats, recentOrders, inventory, recentPurchases, recipes] = await Promise.all([
             // Consulta 1: Obtener contadores de órdenes
             orderRepository.query(
-                `SELECT 
-                    COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'PURCHASING_INGREDIENTS' OR status = 'PREPARING_DISHES') as "inProgress",
+                `SELECT
+                    COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'PURCHASING_INGREDIENTS' OR status = 'PREPARING_DISHES' OR status = 'PENDING_INGREDIENTS') as "inProgress",
                     COUNT(*) FILTER (WHERE status = 'COMPLETED') as "completed",
                     SUM(quantity) FILTER (WHERE status = 'COMPLETED') AS "totalCompletedQuantity"
                 FROM order_batches`
@@ -28,10 +28,11 @@ const dashboardStatus: RequestHandler = async (req, res) => {
                 ORDER BY 
                     CASE 
                     WHEN status = 'PENDING' THEN 1
-                    WHEN status = 'PREPARING_DISHES' THEN 2
-                    WHEN status = 'PURCHASING_INGREDIENTS' THEN 3
-                    WHEN status = 'COMPLETED' THEN 4
-                    ELSE 5
+                    WHEN status = 'PENDING_INGREDIENTS' THEN 2
+                    WHEN status = 'PREPARING_DISHES' THEN 3
+                    WHEN status = 'PURCHASING_INGREDIENTS' THEN 4
+                    WHEN status = 'COMPLETED' THEN 5
+                    ELSE 6
                     END,
                     "createdAt" DESC
                 LIMIT 50

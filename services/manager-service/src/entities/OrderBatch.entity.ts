@@ -7,6 +7,7 @@ export enum OrderStatus {
     PREPARING_DISHES = 'PREPARING_DISHES',
     COMPLETED = 'COMPLETED',
     FAILED = 'FAILED',
+    PENDING_INGREDIENTS = 'PENDING_INGREDIENTS'
 }
 
 @Entity({ name: 'order_batches' }) // Esto le dice a TypeORM que esta clase es una tabla llamada 'order_batches'
