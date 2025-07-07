@@ -13,7 +13,7 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
         - [Flujo Detallado de una Orden](#flujo-detallado-de-una-orden)
     - [Arquitectura del Sistema](#arquitectura-del-sistema)
         - [Decisiones de Arquitectura y Trade-offs](#decisiones-de-arquitectura-y-trade-offs)
-        - [Microservicios:](#microservicios)
+        - [Microservicios en detalle:](#microservicios-en-detalle)
         - [Stack Tecnológico](#stack-tecnológico)
         - [Pruebas (Testing)](#pruebas-testing)
     - [Cómo Ejecutar en Desarrollo Local](#cómo-ejecutar-en-desarrollo-local)
@@ -105,7 +105,7 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 * **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
 * **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
 
-### Microservicios:
+### Microservicios en detalle:
 * **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
 * **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
 * **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
