@@ -20,6 +20,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-admin}
@@ -138,6 +140,7 @@ services:
       - jornada-network
 
 volumes:
+  rabbitmq_data:
   manager-db-data:
   warehouse-db-data:
   kitchen-db-data:
