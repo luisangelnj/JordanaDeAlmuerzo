@@ -6,6 +6,22 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
 * [jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio propio en propagación)
 * [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de Vercel)
 
+## Índice
+- [Reto Técnico: Jornada de Almuerzo gratis](#reto-técnico-jornada-de-almuerzo-gratis)
+    - [Índice](#índice)
+    - [Descripción del proyecto](#descripción-del-proyecto)
+        - [Flujo Detallado de una Orden](#flujo-detallado-de-una-orden)
+    - [Arquitectura del Sistema](#arquitectura-del-sistema)
+        - [Decisiones de Arquitectura y Trade-offs](#decisiones-de-arquitectura-y-trade-offs)
+        - [Microservicios:](#microservicios)
+        - [Stack Tecnológico](#stack-tecnológico)
+        - [Pruebas (Testing)](#pruebas-testing)
+    - [Cómo Ejecutar en Desarrollo Local](#cómo-ejecutar-en-desarrollo-local)
+        - [Prerrequisitos](#prerrequisitos)
+        - [Instrucciones de Arranque](#instrucciones-de-arranque)
+        - [Acceder a los Servicios](#acceder-a-los-servicios)
+        - [Escalado de Servicios (Opcional)](#escalado-de-servicios-opcional)
+    - [Futuras mejoras](#futuras-mejoras)
 
 ## Descripción del Proyecto
 
