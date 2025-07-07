@@ -4,8 +4,24 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
 
 **URL de la aplicación desplegada:** 
 * [jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio propio en propagación)
-* [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de sandbox)
+* [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de Vercel)
 
+## Índice
+- [Reto Técnico: Jornada de Almuerzo gratis](#reto-técnico-jornada-de-almuerzo-gratis)
+    - [Índice](#índice)
+    - [Descripción del proyecto](#descripción-del-proyecto)
+        - [Flujo Detallado de una Orden](#flujo-detallado-de-una-orden)
+    - [Arquitectura del Sistema](#arquitectura-del-sistema)
+        - [Decisiones de Arquitectura y Trade-offs](#decisiones-de-arquitectura-y-trade-offs)
+        - [Microservicios:](#microservicios)
+        - [Stack Tecnológico](#stack-tecnológico)
+        - [Pruebas (Testing)](#pruebas-testing)
+    - [Cómo Ejecutar en Desarrollo Local](#cómo-ejecutar-en-desarrollo-local)
+        - [Prerrequisitos](#prerrequisitos)
+        - [Instrucciones de Arranque](#instrucciones-de-arranque)
+        - [Acceder a los Servicios](#acceder-a-los-servicios)
+        - [Escalado de Servicios (Opcional)](#escalado-de-servicios-opcional)
+    - [Futuras mejoras](#futuras-mejoras)
 
 ## Descripción del Proyecto
 
@@ -19,7 +35,7 @@ Gracias a su arquitectura basada en *microservicios* y *procesamiento encolado*,
 
 ### Flujo Detallado de una Orden
 
-El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización.
+El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización. [Mirar diagrama.](#arquitectura-del-sistema)
 
 1.  **Inicio de la Orden:**
     * El Gerente de la Jornada utiliza la interfaz de usuario para solicitar una cantidad `N` de platos.
@@ -74,6 +90,59 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
     * El **Manager Service** consume este evento final y actualiza el estado de la `OrderBatch` en su `manager-db` a `COMPLETED`, dejando toda la información lista para ser consultada por el frontend.
 
 
+## Arquitectura del Sistema
+
+El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
+
+![Diagrama de arquitectura](https://i.postimg.cc/PrQy4gGV/Presentaci-n1.gif)
+
+### Decisiones de Arquitectura y Trade-offs
+
+* **Arquitectura por Capas:** Cada microservicio sigue una arquitectura por capas para separar responsabilidades. La lógica de la API en el `manager-service` actúa como la capa de Controlador. La lógica de negocio principal reside en los `workers/consumidores` de cada servicio, que fungen como la capa de `Servicio/Caso de Uso`. Finalmente, el acceso a datos se abstrae a través del `Patrón de Repositorio`, facilitado por TypeORM.
+* **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
+* **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
+* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`)  están **diseñados para ser escalables horizontalmente**, permitiendo múltiples instancias en paralelo para mejorar el rendimiento y la capacidad de procesamiento, especialmente en escenarios de alta concurrencia. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
+* **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
+* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
+
+### Microservicios:
+* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
+* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
+* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
+* **Frontend**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
+* **3 Bases de Datos**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total:
+    - Manager-DB
+    - Kitchen-DB
+    - Warehouse-DB
+* **Mensajería (RabbitMQ)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
+
+
+### Stack Tecnológico
+* **Backend:** Node.js, TypeScript
+* **Frontend:** Vue.js, Vite, Axios, Tailwind CSS
+* **Bases de Datos:** PostgreSQL
+* **Mensajería:** RabbitMQ
+* **Contenedores:** Docker & Docker Compose
+* **Despliegue:** Render.com (para el backend), Vercel.com (para el frontend), CloudAMQP.com (para gestionado de mensajería)
+* **Testing:** Jest, ts-jest
+
+### Pruebas (Testing)
+
+El proyecto incluye pruebas unitarias para validar la lógica de negocio crítica.  Para ejecutar las pruebas de un servicio:
+```bash
+# Navegar a la carpeta del servicio, ej:
+cd services/kitchen-service
+cd services/marketplace-service
+
+# Instalar dependencias
+npm install
+
+# Correr las pruebas
+npm test
+```
+
+
 ## Cómo Ejecutar en Desarrollo Local
 
 Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
@@ -122,59 +191,6 @@ Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
 ```bash
 # Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
 docker-compose up --build --scale kitchen=3 --scale warehouse=3
-```
-
-
-## Arquitectura del Sistema
-
-El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
-
-![Diagrama de arquitectura](https://i.postimg.cc/Y9RPZbT1/Diagrama-sin-t-tulo-drawio.png)
-
-### Decisiones de Arquitectura y Trade-offs
-
-* **Arquitectura por Capas:** Cada microservicio sigue una arquitectura por capas para separar responsabilidades. La lógica de la API en el `manager-service` actúa como la capa de Controlador. La lógica de negocio principal reside en los `workers/consumidores` de cada servicio, que fungen como la capa de `Servicio/Caso de Uso`. Finalmente, el acceso a datos se abstrae a través del `Patrón de Repositorio`, facilitado por TypeORM.
-* **Comunicación Asíncrona con RabbitMQ:** Se eligió este patrón para cumplir con el requisito de desacoplamiento y para construir un sistema resiliente y escalable capaz de absorber picos de carga ("pedidos masivos") mediante colas.
-* **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
-* **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`)  están **diseñados para ser escalables horizontalmente**, permitiendo múltiples instancias en paralelo para mejorar el rendimiento y la capacidad de procesamiento, especialmente en escenarios de alta concurrencia. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
-* **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
-* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
-
-### Microservicios:
-* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
-* **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
-* **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
-* **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
-* **Frontend**: La interfaz de usuario intuitiva para que el gerente interactúe con el sistema.
-* **3 Bases de Datos**: Cada servicio principal tiene su propia base de datos PostgreSQL independiente para garantizar un desacoplamiento total:
-    - Manager-DB
-    - Kitchen-DB
-    - Warehouse-DB
-* **Mensajería (RabbitMQ)**: Un bus de RabbitMQ gestionado que maneja toda la comunicación asíncrona.
-
-
-### Stack Tecnológico
-* **Backend:** Node.js, TypeScript
-* **Frontend:** Vue.js, Vite, Axios, Tailwind CSS
-* **Bases de Datos:** PostgreSQL
-* **Mensajería:** RabbitMQ
-* **Contenedores:** Docker & Docker Compose
-* **Despliegue:** Render.com (para el backend), Vercel.com (para el frontend), CloudAMQP.com (para gestionado de mensajería)
-* **Testing:** Jest, ts-jest
-
-### Pruebas (Testing)
-
-El proyecto incluye pruebas unitarias para validar la lógica de negocio crítica.  Para ejecutar las pruebas de un servicio:
-```bash
-# Navegar a la carpeta del servicio, ej:
-cd services/kitchen-service
-cd services/marketplace-service
-
-# Instalar dependencias
-npm install
-
-# Correr las pruebas
-npm test
 ```
 
 
