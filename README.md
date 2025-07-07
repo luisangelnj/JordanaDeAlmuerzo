@@ -19,7 +19,7 @@ Gracias a su arquitectura basada en *microservicios* y *procesamiento encolado*,
 
 ### Flujo Detallado de una Orden
 
-El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización.
+El sistema está diseñado como una línea de ensamblaje asíncrona para garantizar la robustez y escalabilidad. A continuación, se describe el viaje completo de una orden, desde la solicitud hasta la finalización. [Mirar diagrama.](#arquitectura-del-sistema)
 
 1.  **Inicio de la Orden:**
     * El Gerente de la Jornada utiliza la interfaz de usuario para solicitar una cantidad `N` de platos.
