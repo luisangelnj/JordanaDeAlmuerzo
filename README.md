@@ -185,7 +185,7 @@ Si deseas probar el comportamiento del sistema bajo una carga de trabajo más al
 
 Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
 ```bash
-# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
+# Este ejemplo levanta 3 instancias de kitchen y 3 de warehouse
 docker-compose up --build --scale kitchen=3 --scale warehouse=3
 ```
 
