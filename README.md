@@ -129,7 +129,7 @@ docker-compose up --build --scale kitchen=3 --scale warehouse=3
 
 El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
 
-![Diagrama de arquitectura](https://i.postimg.cc/Y9RPZbT1/Diagrama-sin-t-tulo-drawio.png)
+![Diagrama de arquitectura](https://i.postimg.cc/PrQy4gGV/Presentaci-n1.gif)
 
 ### Decisiones de Arquitectura y Trade-offs
 
