@@ -8,11 +8,11 @@ const OUTGOING_QUEUE = 'order_requests_queue';
 const createOrder: RequestHandler = async (req, res) => {
     const { quantity } = req.body;
 
-    if (!quantity || typeof quantity !== 'number' || quantity <= 0) {
+    if (!quantity || typeof quantity !== 'number' || quantity <= 0 || quantity > 999) {
         
         res.status(400).json({
             success: false,
-            message: "A valid 'quantity' is required.",
+            message: "A valid 'quantity' is required between 1 and 999.",
         });
         return;
     }
