@@ -17,7 +17,8 @@ export default {
             PENDING: "En cola",
             PURCHASING_INGREDIENTS: "Comprando ingredientes",
             PREPARING_DISHES: "Preparando platillos",
-            COMPLETED: "Órden completada"
+            COMPLETED: "Órden completada",
+            PENDING_INGREDIENTS: "Solicitando a almacén"
         }
         return {
             orderStats: {

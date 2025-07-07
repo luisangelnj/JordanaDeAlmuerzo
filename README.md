@@ -29,7 +29,7 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
 Este sistema automatiza el flujo operativo de un restaurante durante una jornada de donación de comida gratuita. Permite **procesar múltiples órdenes masivas de forma asíncrona y escalable**, gestionando desde la generación aleatoria de recetas, verificación de inventario, compras externas y preparación de platillos, hasta la finalización de las órdenes, sin intervención manual.
 
 ![Dashboard](https://i.postimg.cc/cHQhpQVq/Screenshot-1.png)
-El dashboard muestra en tiempo real el estado completo del sistema, permitiendo al gerente monitorear cada orden a lo largo de su ciclo de vida: **EN COLA** → **COMPRANDO INGREDIENTES** → **PREPARANDO PLATILLOS** → **ORDEN COMPLETADA**.
+El dashboard muestra en tiempo real el estado completo del sistema, permitiendo al gerente monitorear cada orden a lo largo de su ciclo de vida: **EN COLA** → **SOLICITANDO A ALMACÉN** → **COMPRANDO INGREDIENTES** → **PREPARANDO PLATILLOS** → **ORDEN COMPLETADA**.
 
 Gracias a su arquitectura basada en *microservicios* y *procesamiento encolado*, el sistema puede manejar múltiples solicitudes simultáneas de hasta 999 platillos por orden (para la actual infraestructura sandbox del reto técnico), con posibilidad de escalar horizontalmente los workers para soportar una carga aún mayor sin comprometer el rendimiento.
 
@@ -44,6 +44,7 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
     * El **Manager Service** recibe la petición.
     * Guarda un nuevo registro `OrderBatch` en su base de datos (`manager-db`) con estado `PENDING`.
     * Publica un mensaje con `{ batchId, quantity }` en la cola `order_requests_queue` de RabbitMQ (CloudAMQP).
+    * Escucha eventos de los otros microservicios para mantener el estatus más actual de cada una de las órdenes.
 
 3.  **Selección y Planificación de la Cocina:**
     * Una instancia del **Kitchen Service** consume el mensaje de la cola.
@@ -96,7 +97,7 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 ![Diagrama de arquitectura](https://i.postimg.cc/PrQy4gGV/Presentaci-n1.gif)
 
 ### Microservicios en detalle:
-* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard.
+* **Manager Service**: Actúa como **API Gateway** y orquestador principal. Recibe las peticiones del frontend, inicia los flujos de trabajo y centraliza el estado del sistema para el dashboard, **escucha eventos de los otros microservicios** para mantener el estatus más actual de cada órden.
 * **Kitchen Service**: Gestiona las recetas, selecciona los platos a preparar por orden y calcula los ingredientes necesarios.
 * **Warehouse Service**: Mantiene el estado del inventario. Procesa las solicitudes de ingredientes, descuenta el stock y gestiona el ciclo de compras aumentando su stock por cada compra.
 * **Marketplace Service**: Actúa como una **Capa Anticorrupción (ACL)**, aislando el sistema de la API externa de la plaza de mercado y manejando la lógica de compra y reintentos.
@@ -113,7 +114,7 @@ El sistema está diseñado siguiendo una **arquitectura de microservicios** desa
 * **Bases de Datos Independientes:** Cada servicio con estado tiene su propia base de datos para asegurar una autonomía y desacoplamiento reales, un principio clave de los microservicios.
 * **Escalabilidad de Workers:** Los servicios de fondo (`kitchen`, `warehouse`, `marketplace`)  están **diseñados para ser escalables horizontalmente**, permitiendo múltiples instancias en paralelo para mejorar el rendimiento y la capacidad de procesamiento, especialmente en escenarios de alta concurrencia. Se implementó un `prefetch(1)` para cada consumidor para garantizar la estabilidad individual de cada instancia bajo alta carga.
 * **Gestión de Fallos Externos:** El `marketplace-service` implementa un patrón de reintentos con "Dead-Letter Queues" para manejar de forma robusta la indisponibilidad de ingredientes en la API externa, cumpliendo con el requisito de "esperar hasta que estén disponibles".
-* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema escuchando eventos de otros servicios. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
+* **API Gateway:** El `manager-service` centraliza la información de estado de todo el sistema **escuchando eventos de otros servicios** para mantener estatus de los pedidos. Esto permite que el frontend tenga un único punto de consulta (`/api/dashboard`) para obtener toda la información que necesita, haciendo la interfaz más eficiente.
 
 ### Stack Tecnológico
 * **Backend:** Node.js, TypeScript

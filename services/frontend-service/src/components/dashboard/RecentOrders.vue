@@ -56,7 +56,7 @@
                   'rounded-full px-2 py-0.5 text-theme-xs font-medium': true,
 
                   'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/15 dark:text-yellow-400':
-                    product.status === 'En cola',
+                    product.status === 'En cola' || product.status === 'Solicitando a almacén',
 
                   'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400':
                     product.status === 'Comprando ingredientes',
