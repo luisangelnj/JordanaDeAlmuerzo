@@ -4,7 +4,7 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
 
 **URL de la aplicación desplegada:** 
 * [jornada-de-almuerzo.luisangelnj.com](https://jornada-de-almuerzo.luisangelnj.com/) (Dominio propio en propagación)
-* [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de sandbox)
+* [jornada-de-almuerzo.vercel.app](https://jornada-de-almuerzo.vercel.app/) (Dominio de Vercel)
 
 
 ## Descripción del Proyecto
@@ -74,57 +74,6 @@ El sistema está diseñado como una línea de ensamblaje asíncrona para garanti
     * El **Manager Service** consume este evento final y actualiza el estado de la `OrderBatch` en su `manager-db` a `COMPLETED`, dejando toda la información lista para ser consultada por el frontend.
 
 
-## Cómo Ejecutar en Desarrollo Local
-
-Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
-
-### Prerrequisitos
-* Tener instalado **Docker** y **Docker Compose**.
-* Tener instalado **Git**.
-
-### Instrucciones de Arranque
-
-1.  **Clona el repositorio:**
-    ```bash
-    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
-    ```
-
-2.  **Navega a la raíz del proyecto:**
-    ```bash
-    cd JordanaDeAlmuerzo
-    ```
-
-3.  **Levanta todo el entorno:**
-    ```bash
-    # Levanta todos los servicios
-    docker-compose up --build
-
-    # O ejemplo levantando todos los servicios más 2 instancias de kitchen y 2 de warehouse para escalar
-    docker-compose up --build --scale kitchen=2 --scale warehouse=2
-    ```
-
-4.  **¡Y listo!:**
-    Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:
-    Este único comando se encargará de todo:
-    * **Construirá** las imágenes de Docker para cada microservicio.
-    * **Iniciará** todos los contenedores en el orden correcto.
-    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
-
-### Acceder a los Servicios
-Una vez que todos los contenedores estén corriendo, podrás acceder a:
-* **Frontend de la Aplicación:** `http://localhost:5173`
-* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
-
-### Escalado de Servicios (Opcional)
-Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
-
-Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
-```bash
-# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
-docker-compose up --build --scale kitchen=3 --scale warehouse=3
-```
-
-
 ## Arquitectura del Sistema
 
 El sistema está diseñado siguiendo una **arquitectura de microservicios** desacoplados, donde toda la comunicación entre servicios se realiza de forma **asíncrona** a través de un bus de mensajería (RabbitMQ), cumpliendo con los requisitos excluyentes del reto.
@@ -175,6 +124,57 @@ npm install
 
 # Correr las pruebas
 npm test
+```
+
+
+## Cómo Ejecutar en Desarrollo Local
+
+Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
+
+### Prerrequisitos
+* Tener instalado **Docker** y **Docker Compose**.
+* Tener instalado **Git**.
+
+### Instrucciones de Arranque
+
+1.  **Clona el repositorio:**
+    ```bash
+    git clone https://github.com/luisangelnj/JordanaDeAlmuerzo
+    ```
+
+2.  **Navega a la raíz del proyecto:**
+    ```bash
+    cd JordanaDeAlmuerzo
+    ```
+
+3.  **Levanta todo el entorno:**
+    ```bash
+    # Levanta todos los servicios
+    docker-compose up --build
+
+    # O ejemplo levantando todos los servicios más 2 instancias de kitchen y 2 de warehouse para escalar
+    docker-compose up --build --scale kitchen=2 --scale warehouse=2
+    ```
+
+4.  **¡Y listo!:**
+    Permite que TODOS los servicios inicien y las migraciones hayan corrido por completo:
+    Este único comando se encargará de todo:
+    * **Construirá** las imágenes de Docker para cada microservicio.
+    * **Iniciará** todos los contenedores en el orden correcto.
+    * Cada servicio de backend ejecutará **automáticamente** sus migraciones de base de datos antes de arrancar. (Permite unos momentos a que todas las migraciones hayan corrido correctamente)
+
+### Acceder a los Servicios
+Una vez que todos los contenedores estén corriendo, podrás acceder a:
+* **Frontend de la Aplicación:** `http://localhost:5173`
+* **Panel de Administración de RabbitMQ:** `http://localhost:15672` (Usuario: `admin`, Contraseña: `admin`)
+
+### Escalado de Servicios (Opcional)
+Si deseas probar el comportamiento del sistema bajo una carga de trabajo más alta, puedes escalar los servicios "trabajadores" (`kitchen`, `warehouse`, `marketplace`).
+
+Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
+```bash
+# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
+docker-compose up --build --scale kitchen=3 --scale warehouse=3
 ```
 
 
