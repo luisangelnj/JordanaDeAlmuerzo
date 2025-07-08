@@ -16,6 +16,9 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
         - [Decisiones de Arquitectura y Trade-offs](#decisiones-de-arquitectura-y-trade-offs)
         - [Stack Tecnológico](#stack-tecnológico)
         - [Pruebas (Testing)](#pruebas-testing)
+    - [Flujo de trabajo y despliegue](#flujo-de-trabajo-y-despliegue-cicd)
+        - [Flujo de trabajo y ramas (Git Workflow)](#flujo-de-trabajo-y-ramas-git-workflow)
+        - [Despliegue en la nube](#despliegue-en-la-nube)
     - [Cómo Ejecutar en Desarrollo Local](#cómo-ejecutar-en-desarrollo-local)
         - [Prerrequisitos](#prerrequisitos)
         - [Instrucciones de Arranque](#instrucciones-de-arranque)
@@ -140,9 +143,46 @@ npm test
 ```
 
 
+## Flujo de Trabajo y despliegue (CI/CD)
+
+El proyecto sigue una estrategia de ramificación estructurada para garantizar la calidad y estabilidad del código, desde el desarrollo hasta el despliegue final.
+
+### Flujo de Trabajo y Ramas (Git Workflow)
+
+* **Rama `dev`:** Es la rama principal de integración. Todas las nuevas funcionalidades se desarrollan en ramas separadas (feature-branches) y, una vez completadas, se fusionan en `dev`.
+
+* **Rama `sandbox` (Staging/Pre-producción):** Esta rama funciona como nuestro entorno de pruebas de aceptación (UAT). Está conectada a Vercel y Render para realizar despliegues continuos. Cualquier cambio fusionado a `sandbox` se despliega automáticamente, lo que nos permite validar la integración completa de todos los microservicios en un entorno idéntico al de producción.
+
+* **Rama `main` (Producción):** Representa la versión final, estable y validada del proyecto. Solo el código que ha sido probado y verificado exitosamente en el entorno de `sandbox` se fusiona a `main` para marcar una entrega o versión definitiva.
+
+### Despliegue en la nube
+
+La aplicación está completamente desplegada en la nube utilizando un conjunto de plataformas modernas (PaaS) que permiten un flujo de trabajo basado en Git y una alta automatización.
+
+* **Frontend:**
+    * **Plataforma:** [Vercel.com](https://vercel.com/)
+    * **Método:** La aplicación de Vue.js está conectada directamente al repositorio de GitHub, lo que permite despliegues continuos y automáticos.
+
+* **Backend (Microservicios y API):**
+    * **Plataforma:** [Render.com](https://render.com/)
+    * **Método:** El despliegue se orquesta a través de un archivo de "Infraestructura como Código" (`render.yaml`). Este archivo define todos los servicios de backend (`manager`, `kitchen`, `warehouse`, `marketplace`), sus bases de datos dedicadas (`manager-db`, `kitchen-db`, `warehouse-db`) y se conecta al bus de mensajería. Render construye y despliega los contenedores automáticamente con cada `push` a la rama definida para despliegue.
+
+* **Bases de Datos (PostgreSQL):**
+    * **Plataforma:** [Render.com](https://render.com/)
+    * **Método:** Se definieron múltiples instancias de bases de datos PostgreSQL gestionadas (una por cada microservicio con estado: `manager-db`, `kitchen-db`, `warehouse-db`) directamente en el archivo `render.yaml`. Al utilizar el plan de paga `Starter`, Render permite crear bases de datos dedicadas, asegurando el desacoplamiento de datos dentro de la misma plataforma.
+
+* **Sistema de Mensajería (RabbitMQ):**
+    * **Plataforma:** [CloudAMQP.com](https://cloudamqp.com/)
+    * **Método:** Se utilizó el plan gratuito para obtener una instancia de RabbitMQ gestionada. La URL de conexión se configuró como un secreto en Render
+
+
 ## Cómo Ejecutar en Desarrollo Local
 
-Este proyecto está **100% desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. El **flujo de instalación y arranque** está **completamente automatizado** y con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
+Este proyecto está **100 % desarrollado con contenedores Docker** para garantizar un entorno de desarrollo consistente y fácil de levantar. Todo el **flujo de instalación y arranque está completamente automatizado:** con un solo comando, se iniciarán todos los microservicios, bases de datos, migraciones y el sistema de mensajería.
+
+Se utilizan dos archivos principales de configuración:
+- **docker-compose.yml**: define la infraestructura base del proyecto (servicios, redes, volúmenes, etc.).
+- **docker-compose.override.yml**: contiene configuraciones específicas para el entorno de desarrollo, como variables de entorno y credenciales por defecto. Puedes personalizar este archivo según tus necesidades locales.
 
 ### Prerrequisitos
 * Tener instalado **Docker** y **Docker Compose**.
@@ -185,7 +225,7 @@ Si deseas probar el comportamiento del sistema bajo una carga de trabajo más al
 
 Para hacerlo, simplemente añade el flag `--scale` al comando de arranque:
 ```bash
-# Este ejemplo levanta 2 instancias de kitchen y 2 de warehouse
+# Este ejemplo levanta 3 instancias de kitchen y 3 de warehouse
 docker-compose up --build --scale kitchen=3 --scale warehouse=3
 ```
 
