@@ -16,7 +16,7 @@ Este proyecto es la solución al reto técnico de la jornada de donación, que c
         - [Decisiones de Arquitectura y Trade-offs](#decisiones-de-arquitectura-y-trade-offs)
         - [Stack Tecnológico](#stack-tecnológico)
         - [Pruebas (Testing)](#pruebas-testing)
-    - [Flujo de trabajo y despliegue](#flujo-de-trabajo-y-despliegue-cicd)
+    - [Flujo de trabajo y despliegue (CI/CD)](#flujo-de-trabajo-y-despliegue-cicd)
         - [Flujo de trabajo y ramas (Git Workflow)](#flujo-de-trabajo-y-ramas-git-workflow)
         - [Despliegue en la nube](#despliegue-en-la-nube)
     - [Cómo Ejecutar en Desarrollo Local](#cómo-ejecutar-en-desarrollo-local)
