@@ -22,7 +22,7 @@
         <thead>
           <tr class="border-t border-b border-gray-100 dark:border-gray-800">
             <th class="py-3 text-left w-6/12">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Fecha</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Fecha de compra</p>
             </th>
             <th class="py-3 text-left w-4/12">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Ingrediente</p>
