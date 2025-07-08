@@ -21,20 +21,23 @@
       <table class="min-w-full">
         <thead>
           <tr class="border-t border-b border-gray-100 dark:border-gray-800">
-            <th class="py-3 text-left w-1/3">
+            <th class="py-3 text-left w-1/6">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Folio</p>
             </th>
-            <th class="py-3 text-left w-1/3">
+            <th class="py-3 text-left w-1/4">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Fecha de órden</p>
+            </th>
+            <th class="py-3 text-left w-1/6">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">No. de platos</p>
             </th>
-            <th class="py-3 text-left w-1/3">
+            <th class="py-3 text-left w-1/4">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Estado</p>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="recentOrders.length == 0">
-              <td colspan="3" class="py-3 whitespace-nowrap align-top text-center text-sm dark:text-gray-400">
+              <td colspan="4" class="py-3 whitespace-nowrap align-top text-center text-sm dark:text-gray-400">
                   <p>No hay órdenes registradas</p>
               </td>
           </tr>
@@ -44,13 +47,16 @@
             :key="index"
             class="border-t border-gray-100 dark:border-gray-800"
           >
-            <td class="py-3 whitespace-nowrap w-1/3">
+            <td class="py-3 whitespace-nowrap w-1/6">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400"># {{ product.orderNo }}</p>
             </td>
-            <td class="py-3 whitespace-nowrap w-1/3">
+            <td class="py-3 whitespace-nowrap w-1/4">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.requestedAt }}</p>
+            </td>
+            <td class="py-3 whitespace-nowrap w-1/6">
               <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ product.quantity }}</p>
             </td>
-            <td class="py-3 whitespace-nowrap w-1/3">
+            <td class="py-3 whitespace-nowrap w-1/4">
               <span
                 :class="{
                   'rounded-full px-2 py-0.5 text-theme-xs font-medium': true,
